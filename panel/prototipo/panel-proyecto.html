@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Panel de proyecto · MisioWeb</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧭</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Varela+Round&display=swap" rel="stylesheet">
+<style>
+:root{--pri:#007C75;--acc:#1DB9B0;--bg:#F4F7F6;--card:#FFFFFF;--tx:#353535;--mut:#6b7775;--line:#dbe4e2;--ok:#0a7d4f;--warn:#9a6200;--warnbg:#fff4de;--okbg:#e2f4ec;--wait:#eef1f0;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--pri:#35c4bb;--bg:#121817;--card:#1b2321;--tx:#e6ecea;--mut:#9fb0ac;--line:#2d3936;--ok:#6fdcab;--warn:#f0c46a;--warnbg:#3a2f14;--okbg:#14342a;--wait:#25302d}}
+:root[data-theme="dark"]{color-scheme:dark;--pri:#35c4bb;--bg:#121817;--card:#1b2321;--tx:#e6ecea;--mut:#9fb0ac;--line:#2d3936;--ok:#6fdcab;--warn:#f0c46a;--warnbg:#3a2f14;--okbg:#14342a;--wait:#25302d}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:300 15px/1.55 Montserrat,system-ui,sans-serif}
+.wrap{max-width:900px;margin:0 auto;padding:20px 16px 60px}
+h1,h2,h3{font-family:"Varela Round",Montserrat,sans-serif;font-weight:400;color:var(--pri);margin:0}
+h1{font-size:24px}h2{font-size:19px}h3{font-size:15px;margin:18px 0 6px}
+.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.brand{font-size:13px;color:var(--mut)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;background:var(--card);padding:3px}
+.seg button{border:0;background:none;color:var(--tx);font:400 13px Montserrat,sans-serif;padding:7px 16px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--pri);color:#fff}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.sum{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:16px 0;display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.sum small{display:block;color:var(--mut);font-size:12px}.sum b{font-weight:600}
+.bar{height:8px;background:var(--wait);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--acc);transition:width .25s}
+.banner{border-left:4px solid var(--warn);background:var(--warnbg);padding:12px 14px;border-radius:6px;margin-bottom:16px}
+.banner.ok{border-color:var(--ok);background:var(--okbg)}
+.g{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px}
+.gh{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.g>p{margin:4px 0 0;color:var(--mut);font-size:13px}
+.chip{font:600 12px Montserrat,sans-serif;padding:3px 10px;border-radius:4px;background:var(--wait);color:var(--mut);white-space:nowrap}
+.chip.ok{background:var(--okbg);color:var(--ok)}.chip.part{background:var(--warnbg);color:var(--warn)}
+.fl{display:block;margin:12px 0 0}.fl span{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:400;margin-bottom:4px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--warn);flex:none}.dot.ok{background:var(--ok)}
+input[type=text],textarea,select{width:100%;font:300 14px Montserrat,sans-serif;color:var(--tx);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px}
+textarea{min-height:76px;resize:vertical}
+.ck{display:flex;gap:10px;align-items:flex-start;margin:12px 0 0;font-size:14px;cursor:pointer}.ck input{margin-top:4px;width:18px;height:18px;accent-color:var(--pri)}
+.ck small{display:block;color:var(--mut);font-size:12px}
+.hint{font-size:12px;color:var(--mut);margin-top:3px}
+ul.m{margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--mut)}
+.row{display:grid;grid-template-columns:1fr;gap:10px}
+.act{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+.btn{border:0;background:var(--pri);color:#fff;font:400 13px Montserrat,sans-serif;padding:9px 16px;border-radius:8px;cursor:pointer}
+.btn.ghost{background:none;color:var(--pri);border:1px solid var(--pri)}
+.sel{max-width:210px}
+.lnk{background:none;border:0;color:var(--mut);font:300 12px Montserrat,sans-serif;text-decoration:underline;cursor:pointer;padding:0;margin-top:24px}
+.tb{width:100%;border-collapse:collapse;font-size:13px}.tb td,.tb th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;font-weight:300}.tb th{font-weight:600}.tb td+td,.tb th+th{text-align:right}.tb tr.t td{font-weight:600;color:var(--pri)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><div class="brand">MisioWeb · Panel de proyecto</div><h1 id="ttl">Sankalpa</h1></div>
+    <div class="seg" role="group" aria-label="Vista">
+      <button data-v="cli" aria-pressed="true">Vista cliente</button>
+      <button data-v="age" aria-pressed="false">Vista agencia</button>
+    </div>
+  </div>
+  <div class="sum">
+    <div><small>Plan</small><b>Web Conectada</b></div>
+    <div><small>Implementación</small><b id="pi">$457.470</b></div>
+    <div><small>Abono mensual</small><b id="pa">$68.834,70</b></div>
+    <div style="grid-column:1/-1"><small>Información recibida: <b id="ov">0%</b></small><div class="bar"><i id="ovb" style="width:0"></i></div></div>
+  </div>
+  <div id="app"></div>
+  <button class="lnk" id="rst">Volver a los datos de ejemplo</button>
+</div>
+<script>
+var f=function(k,l,t,sub,h){return{k:k,l:l,t:t||'text',sub:sub,h:h}};
+var ALL=[
+{id:'sec',n:'Secciones de la portada',d:'Tres bloques de actividades. Cada uno necesita título, descripción y foto.',f:[
+ f('s1t','Título','text','Bloque 1'),f('s1d','Descripción','area','Bloque 1'),f('s1f','Foto (enlace o nombre del archivo)','text','Bloque 1'),
+ f('s2t','Título','text','Bloque 2'),f('s2d','Descripción','area','Bloque 2'),f('s2f','Foto (enlace o nombre del archivo)','text','Bloque 2'),
+ f('s3t','Título','text','Bloque 3'),f('s3d','Descripción','area','Bloque 3'),f('s3f','Foto (enlace o nombre del archivo)','text','Bloque 3')]},
+{id:'blog',n:'Blog',d:'Mínimo 2 entradas completas para publicar con contenido real.',f:[
+ f('b1t','Título','text','Entrada 1'),f('b1x','Texto completo','area','Entrada 1'),f('b1i','Imagen de portada','text','Entrada 1'),
+ f('b2t','Título','text','Entrada 2'),f('b2x','Texto completo','area','Entrada 2'),f('b2i','Imagen de portada','text','Entrada 2')]},
+{id:'ig',n:'Instagram (ReelsLoop)',d:'Muestra los reels filtrados por hashtag. Requiere vincular la cuenta con Meta.',f:[
+ f('igu','Usuario de Instagram','text'),f('igh','Hashtags para filtrar los reels','text',0,'Separados por coma. Ej: #yoga, #meditacion'),
+ f('igm','La cuenta es profesional y está vinculada a una Página de Facebook','check',0,'Hace falta para dar los permisos de Meta'),
+ f('iga','El cliente nos dio acceso o autorizó la conexión con Meta','check')]},
+{id:'wc',n:'Tienda (WooCommerce)',d:'Catálogo y compra con Mercado Pago. Las claves se cargan directo en WooCommerce, nunca en este panel.',f:[
+ f('wcm','Tiene cuenta de Mercado Pago lista para cobrar','check'),
+ f('wcc','Credenciales de Mercado Pago conectadas en WooCommerce','check',0,'Las carga el cliente o las ingresamos juntos en una llamada'),
+ f('wce','Modalidades de entrega definidas','text',0,'Ej: retiro por el local, envío por correo'),
+ f('wcp','Cantidad de productos a cargar al inicio','text')]},
+{id:'mk',n:'Marca y textos legales',d:'Elementos que aporta o aprueba el cliente antes de publicar.',f:[
+ f('mkl','Logo y elementos de marca entregados','check'),
+ f('mkp','Textos de privacidad y condiciones comerciales aprobados','check'),
+ f('mkw','WhatsApp y datos de contacto','text')]}
+];
+ALL[1].w='blog';ALL[2].w='ig';ALL[3].w='wc';
+ALL.splice(4,0,
+{id:'cal',w:'cal',n:'Calendario de actividades',d:'Agenda administrable de actividades propias.',f:[f('calA','Actividades con fecha, horario y descripción (mínimo 3)','area'),f('calL','Enlace de inscripción o contacto de cada actividad','text')]},
+{id:'ev',w:'ev',n:'Eventos Misioweb',d:'Gestión de eventos e inscripciones en eventos.misioweb.com.',f:[f('evU','Responsable que administra los eventos (nombre y email)','text'),f('evE','Primer evento definido (nombre, fecha y cupo)','text')]},
+{id:'wa',w:'wa',n:'Botón de WhatsApp',d:'Contacto directo desde cualquier página.',f:[f('waN','Número de WhatsApp con código de país','text'),f('waM','Mensaje inicial sugerido','text')]},
+{id:'bot',w:'bot',n:'Chatbot de atención',d:'Responde preguntas frecuentes las 24 horas.',f:[f('botF','Preguntas frecuentes con sus respuestas','area'),f('botH','Horarios de atención','text')]});
+var W=[{id:'blog',n:'Blog',d:'Artículos propios con página individual',imp:30,ab:3},{id:'cal',n:'Calendario de actividades',d:'Agenda administrable con enlace de inscripción',imp:30,ab:4},{id:'ig',n:'Reels de Instagram (ReelsLoop)',d:'Reels filtrados por hashtag, con reproducción continua',imp:40,ab:5},{id:'ev',n:'Eventos Misioweb',d:'Inscripciones online, un evento por mes de hasta 50 personas',imp:30,ab:6},{id:'wc',n:'Tienda con Mercado Pago',d:'Catálogo, carrito, compra y área de usuario',imp:70,ab:12},{id:'wa',n:'Botón de WhatsApp',d:'Contacto directo desde cualquier página',imp:10,ab:1},{id:'bot',n:'Chatbot de atención',d:'Responde preguntas frecuentes todo el día',imp:60,ab:9}];
+var BASE={imp:99,ab:14.99},G;
+function sync(){G=ALL.filter(function(g){return!g.w||S.w[g.w]})}
+function r2(n){return Math.round(n*100)/100}
+function ars(n){n=r2(n);return'$'+n.toLocaleString('es-AR',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2})}
+function usd(n){n=r2(n);return'USD '+n.toLocaleString('es-AR',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2})}
+function calc(){var i=BASE.imp,a=BASE.ab;W.forEach(function(w){if(S.w[w.id]){i+=w.imp;a+=w.ab}});return{imp:r2(i),ab:r2(a)}}
+function picker(){var q=calc();return'<section class="g"><h2>Elegí los widgets de tu web</h2><p>Sumá lo que necesitás. La inversión se actualiza sola y cada widget pide solo la información que necesita.</p>'+W.map(function(w){return'<label class="ck"><input type="checkbox" data-w="'+w.id+'"'+(S.w[w.id]?' checked':'')+'><div>'+w.n+'<small>'+w.d+' · suma '+usd(w.imp)+' y '+usd(w.ab)+' por mes</small></div></label>'}).join('')+'<div class="banner ok" style="margin:14px 0 0">Sitio base incluido ('+usd(BASE.imp)+' y '+usd(BASE.ab)+' por mes). Inversión estimada: <b>'+usd(q.imp)+'</b> de implementación y <b>'+usd(q.ab)+'</b> por mes.</div></section>'}
+function ptab(){var q=calc(),fx=S.fx,r='<tr><td>Sitio base</td><td>'+usd(BASE.imp)+'</td><td>'+usd(BASE.ab)+'</td></tr>';W.forEach(function(w){if(S.w[w.id])r+='<tr><td>'+w.n+'</td><td>'+usd(w.imp)+'</td><td>'+usd(w.ab)+'</td></tr>'});return'<table class="tb"><tr><th>Concepto</th><th>Implementación</th><th>Abono mensual</th></tr>'+r+'<tr class="t"><td>Total en dólares</td><td>'+usd(q.imp)+'</td><td>'+usd(q.ab)+'</td></tr><tr class="t"><td>Total en pesos</td><td>'+ars(q.imp*fx)+'</td><td>'+ars(q.ab*fx)+'</td></tr></table>'}
+function ptxt(){var q=calc(),fx=S.fx,n=W.filter(function(w){return S.w[w.id]}).map(function(w){return w.n});return'Presupuesto web para Sankalpa\n\nIncluye: sitio base'+(n.length?', '+n.join(', '):'')+'.\n\nImplementación: '+ars(q.imp*fx)+'\n- Anticipo del 50%: '+ars(q.imp*fx/2)+'\n- Saldo del 50% al publicar: '+ars(q.imp*fx/2)+'\nAbono mensual: '+ars(q.ab*fx)+' (hosting, dominio, correo, seguridad, mantenimiento y soporte)\n\nReferencia: implementación '+usd(q.imp)+', abono '+usd(q.ab)+', cotización '+ars(fx)+' por USD.'}
+function proposal(){return'<section class="g"><h2>Propuesta según los widgets elegidos</h2><p>Se recalcula cuando el cliente suma o quita widgets. Los precios por widget son de ejemplo.</p><label class="fl"><span>Cotización del dólar (Banco Nación venta)</span><input type="text" id="fx" class="sel" inputmode="decimal" value="'+S.fx+'"></label><div id="pt" style="margin-top:12px">'+ptab()+'</div><textarea id="ptxt" readonly style="min-height:200px;margin-top:12px">'+esc(ptxt())+'</textarea><div class="act"><button class="btn" id="cp2">Copiar propuesta</button><span class="hint" id="cpm2"></span></div></section>'}
+function pu(){var a=document.getElementById('pt');if(a){a.innerHTML=ptab();document.getElementById('ptxt').value=ptxt()}ov()}
+var SEED={v:{s1t:'Yoga y movimiento consciente',s1d:'Un espacio para explorar el yoga, el bienestar y nuevas formas de conectar con vos y con otros.',s2t:'Meditación',s3t:'Encuentros de bienestar',b1t:'Pequeñas pausas para volver al presente',b2t:'Encontrarnos: el valor de compartir la práctica',igu:'@sankalpa_terapias_holisticas'},a:{},w:{blog:1,cal:1,ig:1,ev:1,wc:1},fx:1530,view:'cli'};
+var S;
+try{S=JSON.parse(localStorage.getItem('misioweb-panel-sankalpa'))}catch(e){}
+if(!S||!S.v||!S.w)S=JSON.parse(JSON.stringify(SEED));
+function save(){try{localStorage.setItem('misioweb-panel-sankalpa',JSON.stringify(S))}catch(e){}}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;')}
+function done(x){var v=S.v[x.k];return x.t==='check'?v===true:!!(v&&String(v).trim())}
+function gp(g){var d=g.f.filter(done).length;return{d:d,t:g.f.length,p:Math.round(d/g.f.length*100)}}
+function miss(g){return g.f.filter(function(x){return!done(x)})}
+function lab(x){return(x.sub?x.sub+' · ':'')+x.l}
+function chip(g){var q=gp(g);var c=q.p===100?'ok':q.p>0?'part':'';return'<span class="chip '+c+'" data-c="'+g.id+'">'+q.d+' de '+q.t+'</span>'}
+function totals(){var d=0,t=0;G.forEach(function(g){var q=gp(g);d+=q.d;t+=q.t});return{d:d,t:t,p:Math.round(d/t*100)}}
+function field(x){var v=S.v[x.k];
+ if(x.t==='check')return'<label class="ck"><input type="checkbox" data-k="'+x.k+'"'+(v?' checked':'')+'><div>'+x.l+(x.h?'<small>'+x.h+'</small>':'')+'</div></label>';
+ var inp=x.t==='area'?'<textarea data-k="'+x.k+'">'+esc(v)+'</textarea>':'<input type="text" data-k="'+x.k+'" value="'+esc(v)+'">';
+ return'<label class="fl"><span><i class="dot'+(done(x)?' ok':'')+'" data-d="'+x.k+'"></i>'+x.l+'</span>'+inp+(x.h?'<div class="hint">'+x.h+'</div>':'')+'</label>'}
+function client(){var t=totals(),n=t.t-t.d;
+ var h=picker()+'<div class="banner'+(n?'':' ok')+'" id="bn">'+bn()+'</div>';
+ G.forEach(function(g){var last='';
+  h+='<section class="g"><div class="gh"><h2>'+g.n+'</h2>'+chip(g)+'</div><p>'+g.d+'</p>';
+  g.f.forEach(function(x){if(x.sub&&x.sub!==last){h+='<h3>'+x.sub+'</h3>';last=x.sub}h+=field(x)});
+  h+='</section>'});
+ return h}
+function bn(){var t=totals(),n=t.t-t.d;return n?'Faltan <b>'+n+'</b> puntos por completar. Cada sección muestra qué falta.':'Está todo completo. Ya podemos armar y publicar tu sitio.'}
+var ST=['Sin empezar','En curso','Listo'];
+function msg(){var m='Hola! Para avanzar con la web de Sankalpa nos falta:\n';
+ G.forEach(function(g){var q=miss(g);if(q.length){m+='\n*'+g.n+'*\n';q.forEach(function(x){m+='- '+lab(x)+'\n'})}});
+ return m+'\nCon eso podemos seguir. Gracias!'}
+function agency(){var t=totals(),ready=G.filter(function(g){return gp(g).p===100});
+ var h='<div class="banner'+(ready.length===G.length?' ok':'')+'"><b>Podemos trabajar hoy:</b> la maquetación base del sitio (no depende del cliente)'+(ready.length?' y '+ready.map(function(g){return g.n}).join(', ')+', que ya tiene todo.':'.')+'</div>';
+ G.forEach(function(g){var q=gp(g),m=miss(g),s=q.p===100?['ok','Listo para armar']:q.p>0?['part','Parcial, falta info']:['','Esperando al cliente'];
+  h+='<section class="g"><div class="gh"><h2>'+g.n+'</h2><span class="chip '+s[0]+'">'+s[1]+'</span></div>'
+  +'<div class="bar" style="margin-top:10px"><i style="width:'+q.p+'%"></i></div>'
+  +(m.length?'<ul class="m">'+m.map(function(x){return'<li>'+lab(x)+'</li>'}).join('')+'</ul>':'<p>Todo recibido.</p>')
+  +'<label class="fl"><span>Estado del trabajo (interno)</span><select class="sel" data-a="'+g.id+'">'+ST.map(function(o){return'<option'+((S.a[g.id]||ST[0])===o?' selected':'')+'>'+o+'</option>'}).join('')+'</select></label></section>'});
+ h+=proposal();h+='<section class="g"><h2>Mensaje para el cliente</h2><p>Lista de lo que falta, lista para pegar en WhatsApp o mail.</p><textarea id="msg" style="min-height:160px;margin-top:10px" readonly>'+esc(msg())+'</textarea><div class="act"><button class="btn" id="cp">Copiar mensaje</button><span class="hint" id="cpm"></span></div></section>';
+ return h}
+function render(){sync();
+ document.querySelectorAll('.seg button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.v===S.view)});
+ document.getElementById('app').innerHTML=S.view==='cli'?client():agency();ov()}
+function ov(){var t=totals(),q=calc();document.getElementById('pi').textContent=ars(q.imp*S.fx);document.getElementById('pa').textContent=ars(q.ab*S.fx);document.getElementById('ov').textContent=t.p+'%';document.getElementById('ovb').style.width=t.p+'%'}
+function upd(k){G.forEach(function(g){var q=gp(g),c=document.querySelector('[data-c="'+g.id+'"]');if(c){c.textContent=q.d+' de '+q.t;c.className='chip '+(q.p===100?'ok':q.p>0?'part':'')}});
+ var d=document.querySelector('[data-d="'+k+'"]');if(d){var x;G.forEach(function(g){g.f.forEach(function(y){if(y.k===k)x=y})});d.className='dot'+(done(x)?' ok':'')}
+ var b=document.getElementById('bn');if(b){b.innerHTML=bn();b.className='banner'+(totals().d===totals().t?' ok':'')}ov()}
+document.addEventListener('input',function(e){var t=e.target;
+ if(t.dataset.k){S.v[t.dataset.k]=t.type==='checkbox'?t.checked:t.value;save();upd(t.dataset.k)}
+ else if(t.dataset.a){S.a[t.dataset.a]=t.value;save()}
+ else if(t.dataset.w){S.w[t.dataset.w]=t.checked?1:0;save();render()}
+ else if(t.id==='fx'){S.fx=parseFloat(String(t.value).replace(',','.'))||0;save();pu()}});
+document.addEventListener('click',function(e){var t=e.target;
+ if(t.dataset.v){S.view=t.dataset.v;save();render();window.scrollTo(0,0)}
+ if(t.id==='cp'||t.id==='cp2'){var c1=t.id==='cp',m=document.getElementById(c1?'msg':'ptxt'),o=document.getElementById(c1?'cpm':'cpm2');m.select();
+  try{navigator.clipboard.writeText(m.value).then(function(){o.textContent='Mensaje copiado'},function(){document.execCommand('copy');o.textContent='Mensaje copiado'})}catch(er){try{document.execCommand('copy');o.textContent='Mensaje copiado'}catch(e2){o.textContent='Seleccioná el texto y copialo'}}}
+ if(t.id==='rst'){S=JSON.parse(JSON.stringify(SEED));save();render()}});
+render();
+</script>
+</body>
+</html>
