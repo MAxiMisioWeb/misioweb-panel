@@ -10,7 +10,7 @@ Un plugin de WordPress (`wp-plugin/misioweb-progreso`) muestra el avance dentro 
 ## Estado actual
 
 - `panel/prototipo/panel-proyecto.html`: prototipo funcional en un solo archivo. Guarda en localStorage, así que cliente y agencia NO comparten datos todavía. Está cargado con el caso de ejemplo Sankalpa.
-- `wp-plugin/misioweb-progreso/misioweb-progreso.php`: v0.1.0. Se escribió sin poder ejecutar PHP, o sea que NO está probado. Primera tarea técnica: validar sintaxis y probarlo en un WordPress con WooCommerce.
+- `wp-plugin/misioweb-progreso/misioweb-progreso.php`: v0.2.0. Probado con `php -l` y con tests de integración (`wp-plugin/tests/`) en WordPress 7.1.3, WooCommerce 11.2.1 y Mercado Pago 7.8.1, sobre SQLite. Falta probarlo en un WordPress real con el WooCommerce oficial y contra el panel real.
 
 ## Decisiones tomadas
 
@@ -25,13 +25,16 @@ Un plugin de WordPress (`wp-plugin/misioweb-progreso`) muestra el avance dentro 
 
 ## Decisiones pendientes
 
-1. Backend: propio (API + base de datos) o uno ya armado como Supabase. Recomendación para validar rápido: Supabase. Preguntar a Maxi antes de empezar.
+1. Backend: propio (API + base de datos) o uno ya armado como Supabase. Recomendación para validar rápido: Supabase. Maxi tiene disponible hosting de apps PHP en Cloudways o un cluster propio con Proxmox (IP pública, proxy Nginx). Falta confirmar: Supabase (en la nube o instalado en Proxmox) o PHP propio, y en ese caso el framework.
 2. Precios reales por widget y si el cliente los ve o solo la agencia (alternativa: paquetes cerrados Esencial, Conectada y Completa, con widgets sueltos como adicionales).
-3. Confirmar slugs de páginas legales, nombre del plugin de ReelsLoop y detección de Mercado Pago (ver supuestos en el plugin).
+3. Confirmar supuestos del plugin:
+   - Páginas legales: privacidad por la página configurada en WordPress o los slugs `privacidad`, `politica-de-privacidad`, `privacy-policy`; condiciones por la página de términos de WooCommerce o `condiciones`, `terminos-y-condiciones`, `terminos`, `terms-and-conditions`. Se pueden cambiar con el filtro `mw_progreso_legal_slugs`.
+   - ReelsLoop: se detecta si la ruta del plugin activo contiene `reelsloop`. Falta confirmar el nombre real.
+   - Mercado Pago: confirmado con el plugin oficial 7.8.1; sus pasarelas se llaman `woo-mercado-pago-*` y se detectan por `mercado` en el ID.
 
 ## Orden de trabajo sugerido
 
-1. Validar y probar el plugin (lint de PHP, WordPress local o de prueba).
+1. ~~Validar y probar el plugin (lint de PHP, WordPress local o de prueba).~~ Hecho en v0.2.0; ver `wp-plugin/tests/README.md`.
 2. Definir backend y crear el esquema de `docs/spec.md`.
 3. Login separado para cliente y agencia.
 4. Llevar el panel a una app real conectada a datos (mantener el diseño del prototipo).

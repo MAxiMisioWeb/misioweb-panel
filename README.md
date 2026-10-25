@@ -5,7 +5,8 @@ Panel para organizar la información de cada cliente web, dejar que el cliente e
 ## Estructura
 
 - `panel/prototipo/`: prototipo en un solo HTML (datos en localStorage, sin backend).
-- `wp-plugin/misioweb-progreso/`: plugin de WordPress v0.1.0 (sin probar en un WordPress real).
+- `wp-plugin/misioweb-progreso/`: plugin de WordPress v0.2.0.
+- `wp-plugin/tests/`: tests de integración del plugin y script para armar un WordPress de prueba.
 - `docs/spec.md`: modelo de datos, endpoints y reglas de cálculo.
 - `CLAUDE.md`: contexto y decisiones para trabajar con Claude Code.
 
