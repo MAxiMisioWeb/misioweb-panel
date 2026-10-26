@@ -4,6 +4,8 @@ Panel para organizar la información de cada cliente web, dejar que el cliente e
 
 ## Estructura
 
+- `backend/`: backend del panel (Laravel 13 + PostgreSQL).
+- `deploy/`: script para instalar y actualizar el backend en la VM.
 - `panel/prototipo/`: prototipo en un solo HTML (datos en localStorage, sin backend).
 - `wp-plugin/misioweb-progreso/`: plugin de WordPress v0.2.0.
 - `wp-plugin/tests/`: tests de integración del plugin y script para armar un WordPress de prueba.

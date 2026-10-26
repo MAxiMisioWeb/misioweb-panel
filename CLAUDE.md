@@ -10,10 +10,13 @@ Un plugin de WordPress (`wp-plugin/misioweb-progreso`) muestra el avance dentro 
 ## Estado actual
 
 - `panel/prototipo/panel-proyecto.html`: prototipo funcional en un solo archivo. Guarda en localStorage, así que cliente y agencia NO comparten datos todavía. Está cargado con el caso de ejemplo Sankalpa.
+- `backend/`: Laravel 13 + PostgreSQL. Tiene el esquema de `docs/spec.md`, el catálogo de widgets y requisitos, el cálculo de la propuesta y el mapeo de señales, todo con tests. Todavía no tiene login ni API.
+- `deploy/deploy.sh`: instala o actualiza el backend en la VM (Debian 13, Nginx en el puerto 8092 detrás del proxy). Ver `deploy/README.md`.
 - `wp-plugin/misioweb-progreso/misioweb-progreso.php`: v0.2.0. Probado con `php -l` y con tests de integración (`wp-plugin/tests/`) en WordPress 7.1.3, WooCommerce 11.2.1 y Mercado Pago 7.8.1, sobre SQLite. Falta probarlo en un WordPress real con el WooCommerce oficial y contra el panel real.
 
 ## Decisiones tomadas
 
+- Backend propio: Laravel 13 + PostgreSQL 17 en una VM Debian 13 del cluster Proxmox de MisioWeb (`192.168.100.87`, 2 vCPU, 4 GB). Publicado en `https://panel.misioweb.com` a través del proxy Nginx (`192.168.100.2`), que termina el HTTPS y reenvía al puerto 8092. El firewall de la VM solo acepta el 8092 desde el proxy.
 - Los widgets suman precio al presupuesto. Precios en USD, convertidos a pesos con la cotización dólar Banco Nación venta (campo editable).
 - Precios de EJEMPLO (reemplazar por los reales). Base USD 99 de implementación y 14,99 mensual, más:
   blog 30/3, calendario 30/4, ReelsLoop 40/5, Eventos Misioweb 30/6, tienda con Mercado Pago 70/12, botón de WhatsApp 10/1, chatbot 60/9.
@@ -25,9 +28,8 @@ Un plugin de WordPress (`wp-plugin/misioweb-progreso`) muestra el avance dentro 
 
 ## Decisiones pendientes
 
-1. Backend: propio (API + base de datos) o uno ya armado como Supabase. Recomendación para validar rápido: Supabase. Maxi tiene disponible hosting de apps PHP en Cloudways o un cluster propio con Proxmox (IP pública, proxy Nginx). Falta confirmar: Supabase (en la nube o instalado en Proxmox) o PHP propio, y en ese caso el framework.
-2. Precios reales por widget y si el cliente los ve o solo la agencia (alternativa: paquetes cerrados Esencial, Conectada y Completa, con widgets sueltos como adicionales).
-3. Confirmar supuestos del plugin:
+1. Precios reales por widget y si el cliente los ve o solo la agencia (alternativa: paquetes cerrados Esencial, Conectada y Completa, con widgets sueltos como adicionales).
+2. Confirmar supuestos del plugin:
    - Páginas legales: privacidad por la página configurada en WordPress o los slugs `privacidad`, `politica-de-privacidad`, `privacy-policy`; condiciones por la página de términos de WooCommerce o `condiciones`, `terminos-y-condiciones`, `terminos`, `terms-and-conditions`. Se pueden cambiar con el filtro `mw_progreso_legal_slugs`.
    - ReelsLoop: se detecta si la ruta del plugin activo contiene `reelsloop`. Falta confirmar el nombre real.
    - Mercado Pago: confirmado con el plugin oficial 7.8.1; sus pasarelas se llaman `woo-mercado-pago-*` y se detectan por `mercado` en el ID.
@@ -35,7 +37,7 @@ Un plugin de WordPress (`wp-plugin/misioweb-progreso`) muestra el avance dentro 
 ## Orden de trabajo sugerido
 
 1. ~~Validar y probar el plugin (lint de PHP, WordPress local o de prueba).~~ Hecho en v0.2.0; ver `wp-plugin/tests/README.md`.
-2. Definir backend y crear el esquema de `docs/spec.md`.
+2. ~~Definir backend y crear el esquema de `docs/spec.md`.~~ Hecho: Laravel + PostgreSQL, ver `backend/README.md`.
 3. Login separado para cliente y agencia.
 4. Llevar el panel a una app real conectada a datos (mantener el diseño del prototipo).
 5. Endpoint `POST /v1/sync` y conectar el plugin.
