@@ -108,7 +108,7 @@ Cada comando muestra un enlace para elegir contraseña, que vence en 60 minutos.
    define( 'MW_PROGRESO_TOKEN', 'el-token' );
    ```
    Si no tenés acceso a los archivos, pegalo en el campo Token de los Ajustes del plugin.
-4. En *Ajustes → MisioWeb Progreso*, cargá la URL del panel (`https://panel.misioweb.com/api`) y el ID del sitio. Guardá y apretá **Sincronizar ahora**.
+4. En *Ajustes → MisioWeb Progreso*, cargá el ID del sitio. La URL del panel ya viene cargada (`https://panel.misioweb.com/api`). Guardá y apretá **Sincronizar ahora**. Arriba tiene que aparecer "Conectado con el panel"; si no, el aviso dice qué falta o qué error dio.
 5. En el escritorio de WordPress aparece "Avance de tu sitio · MisioWeb". En el panel, el proyecto muestra la última sincronización y las señales recibidas.
 
 Después sincroniza solo cada hora y cada vez que se publica algo.

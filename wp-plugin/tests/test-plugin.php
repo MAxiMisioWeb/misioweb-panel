@@ -240,7 +240,7 @@ mw_test( 'Sync: sin configurar no llama al panel', function () {
 	$s = MisioWeb_Progreso::sync();
 	mw_assert( null === $cap, 'no hubo pedido HTTP' );
 	mw_assert( isset( $s['local']['blog_entradas'] ), 'guarda el estado local' );
-	mw_assert( isset( $s['error'] ) && false !== strpos( $s['error'], 'URL del panel, ID del sitio, Token' ), 'avisa qué datos faltan' );
+	mw_assert( isset( $s['error'] ) && false !== strpos( $s['error'], 'falta configurar ID del sitio, Token' ), 'avisa qué datos faltan (la URL viene por defecto)' );
 	mw_assert( false !== strpos( mw_render(), 'falta configurar' ), 'el escritorio muestra el aviso' );
 } );
 
@@ -346,13 +346,20 @@ mw_test( 'Ajustes: avisa si la URL no es https y qué falta configurar', functio
 	mw_assert( 'api_url' === ( get_settings_errors( MisioWeb_Progreso::OPT )[0]['code'] ?? '' ), 'muestra el error de la URL' );
 	$wp_settings_errors = array();
 
-	update_option( MisioWeb_Progreso::OPT, array( 'api_url' => '', 'site_id' => '1', 'token' => 'x' ) );
+	update_option( MisioWeb_Progreso::OPT, array( 'api_url' => '', 'site_id' => '', 'token' => 'x' ) );
 	wp_set_current_user( 1 );
 	ob_start();
 	MisioWeb_Progreso::settings_page();
 	$html = ob_get_clean();
 	wp_set_current_user( 0 );
-	mw_assert( false !== strpos( $html, 'Falta configurar: URL del panel' ), 'la página de ajustes dice qué falta' );
+	mw_assert( false !== strpos( $html, 'Falta configurar: ID del sitio' ), 'la página de ajustes dice qué falta' );
+	mw_assert( false !== strpos( $html, 'value="https://panel.misioweb.com/api"' ), 'la URL del panel viene cargada por defecto' );
+
+	$cap = null;
+	update_option( MisioWeb_Progreso::OPT, array( 'api_url' => '', 'site_id' => '7', 'token' => 'tok' ) );
+	mw_fake_panel( array( 'response' => array( 'code' => 200 ), 'body' => '{}' ), $cap );
+	MisioWeb_Progreso::sync();
+	mw_assert( 'https://panel.misioweb.com/api/v1/sync' === $cap['url'], 'con la URL vacía sincroniza contra el panel de MisioWeb' );
 } );
 
 mw_test( 'Ajustes: el token guardado no se muestra y se mantiene si el campo queda vacío', function () {

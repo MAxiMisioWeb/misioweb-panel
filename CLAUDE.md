@@ -12,7 +12,7 @@ Un plugin de WordPress (`wp-plugin/misioweb-progreso`) muestra el avance dentro 
 - `panel/prototipo/panel-proyecto.html`: prototipo original en un solo archivo, con datos en localStorage. Quedó como referencia de diseño: el panel real está en `backend/`.
 - `backend/`: Laravel 13 + PostgreSQL. Tiene el esquema de `docs/spec.md`, el catálogo de widgets y requisitos, el cálculo de la propuesta, el mapeo de señales, el login, el circuito de pedidos, el panel de cliente y agencia conectado a la base y la API del plugin (`POST /api/v1/sync`), todo con tests.
 - `deploy/deploy.sh`: instala o actualiza el backend en la VM (Debian 13, Nginx en el puerto 8092 detrás del proxy). Ver `deploy/README.md`.
-- `wp-plugin/misioweb-progreso/misioweb-progreso.php`: v0.2.1 (avisa si falta configurar la conexión). Probado con `php -l` y con tests de integración (`wp-plugin/tests/`) en WordPress 7.1.3, WooCommerce 11.2.1 y Mercado Pago 7.8.1, sobre SQLite. Falta probarlo en un WordPress real con el WooCommerce oficial y contra el panel real.
+- `wp-plugin/misioweb-progreso/misioweb-progreso.php`: v0.2.2 (trae la URL del panel cargada y avisa si falta configurar la conexión). Probado con `php -l` y con tests de integración (`wp-plugin/tests/`) en WordPress 7.1.3, WooCommerce 11.2.1 y Mercado Pago 7.8.1, sobre SQLite. Falta probarlo en un WordPress real con el WooCommerce oficial y contra el panel real.
 
 ## Decisiones tomadas
 

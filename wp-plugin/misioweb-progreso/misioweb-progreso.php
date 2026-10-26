@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MisioWeb Progreso
  * Description: Muestra en el escritorio de WordPress qué falta para publicar el sitio y sincroniza el avance con el panel de proyecto de MisioWeb.
- * Version: 0.2.1
+ * Version: 0.2.2
  * Author: MisioWeb
  * Requires at least: 5.3
  * Requires PHP: 7.4
@@ -16,11 +16,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class MisioWeb_Progreso {
 
-	const VERSION = '0.2.1';
+	const VERSION = '0.2.2';
 	const OPT     = 'mw_progreso_settings';
 	const STATE   = 'mw_progreso_state';
 	const CRON    = 'mw_progreso_sync';
 	const SOON    = 'mw_progreso_sync_soon';
+
+	/** Panel de MisioWeb: se usa si la URL del panel queda vacía. */
+	const DEFAULT_API_URL = 'https://panel.misioweb.com/api';
 
 	/** Caracteres válidos en un token (alfanuméricos, base64 y base64url). */
 	const TOKEN_CHARS = '/[^A-Za-z0-9._~+\/=-]/';
@@ -98,8 +101,12 @@ final class MisioWeb_Progreso {
 		if ( 'token' === $key && defined( 'MW_PROGRESO_TOKEN' ) ) {
 			return MW_PROGRESO_TOKEN;
 		}
-		$o = get_option( self::OPT, array() );
-		return isset( $o[ $key ] ) ? $o[ $key ] : '';
+		$o     = get_option( self::OPT, array() );
+		$value = isset( $o[ $key ] ) ? $o[ $key ] : '';
+		if ( 'api_url' === $key && '' === $value ) {
+			return self::DEFAULT_API_URL;
+		}
+		return $value;
 	}
 
 	/**
@@ -145,7 +152,7 @@ final class MisioWeb_Progreso {
 		echo '<form method="post" action="options.php">';
 		settings_fields( 'mw_progreso' );
 		echo '<table class="form-table">';
-		printf( '<tr><th>%s</th><td><input class="regular-text" type="url" name="%s[api_url]" value="%s" placeholder="https://panel.misioweb.com/api"><p class="description">%s</p></td></tr>', esc_html__( 'URL del panel', 'misioweb-progreso' ), esc_attr( self::OPT ), esc_attr( $g( 'api_url' ) ), esc_html__( 'Solo se aceptan direcciones HTTPS.', 'misioweb-progreso' ) );
+		printf( '<tr><th>%s</th><td><input class="regular-text" type="url" name="%s[api_url]" value="%s"><p class="description">%s</p></td></tr>', esc_html__( 'URL del panel', 'misioweb-progreso' ), esc_attr( self::OPT ), esc_attr( self::opt( 'api_url' ) ), esc_html__( 'Normalmente no hay que cambiarla. Solo se aceptan direcciones HTTPS.', 'misioweb-progreso' ) );
 		printf( '<tr><th>%s</th><td><input class="regular-text" type="text" name="%s[site_id]" value="%s"></td></tr>', esc_html__( 'ID del sitio', 'misioweb-progreso' ), esc_attr( self::OPT ), esc_attr( $g( 'site_id' ) ) );
 		echo '<tr><th>' . esc_html__( 'Token', 'misioweb-progreso' ) . '</th><td>';
 		if ( defined( 'MW_PROGRESO_TOKEN' ) ) {
