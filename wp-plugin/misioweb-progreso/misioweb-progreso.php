@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MisioWeb Progreso
  * Description: Muestra en el escritorio de WordPress qué falta para publicar el sitio y sincroniza el avance con el panel de proyecto de MisioWeb.
- * Version: 0.3.0
+ * Version: 0.4.0
  * Author: MisioWeb
  * Requires at least: 5.3
  * Requires PHP: 7.4
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class MisioWeb_Progreso {
 
-	const VERSION = '0.3.0';
+	const VERSION = '0.4.0';
 	const OPT     = 'mw_progreso_settings';
 	const STATE   = 'mw_progreso_state';
 	const CRON    = 'mw_progreso_sync';
@@ -224,17 +224,22 @@ final class MisioWeb_Progreso {
 			$c['tienda_pasarela']  = array( 'label' => __( 'Tienda: Mercado Pago activo', 'misioweb-progreso' ), 'ok' => false, 'detail' => 'WooCommerce no activo', 'na' => true );
 		}
 
-		$plugins = (array) get_option( 'active_plugins', array() );
-		if ( is_multisite() ) {
-			$plugins = array_merge( $plugins, array_keys( (array) get_site_option( 'active_sitewide_plugins', array() ) ) );
+		$r                 = self::reels_status();
+		$c['reels_plugin'] = array( 'label' => __( 'Reels de Instagram: plugin activo', 'misioweb-progreso' ), 'ok' => $r['active'], 'detail' => $r['active'] ? trim( 'activo ' . $r['version'] ) : 'no instalado' );
+		if ( $r['active'] ) {
+			$c['reels_cuenta']    = array(
+				'label'  => __( 'Reels de Instagram: cuenta y token configurados', 'misioweb-progreso' ),
+				'ok'     => $r['account'] && $r['token'],
+				'detail' => 'cuenta: ' . ( $r['account'] ? 'sí' : 'no' ) . ', token: ' . ( $r['token'] ? 'sí' : 'no' ),
+			);
+			$c['reels_hashtags']  = array( 'label' => __( 'Reels de Instagram: hashtags configurados', 'misioweb-progreso' ), 'ok' => $r['tags'] > 0, 'detail' => $r['tags'] . ' hashtags' );
+			$c['reels_meta']      = array(
+				'label'  => __( 'Reels de Instagram: conexión con Meta funcionando', 'misioweb-progreso' ),
+				'ok'     => $r['meta_ok'],
+				'detail' => $r['last_success'] ? $r['reels'] . ' reels, última sincronización correcta ' . wp_date( 'd/m H:i', $r['last_success'] ) : 'nunca sincronizó bien',
+			);
+			$c['reels_en_pagina'] = array( 'label' => __( 'Reels de Instagram: reproductor en una página publicada', 'misioweb-progreso' ), 'ok' => count( $r['pages'] ) > 0, 'detail' => count( $r['pages'] ) . ' páginas' );
 		}
-		$reels = false;
-		foreach ( $plugins as $file ) {
-			if ( false !== stripos( $file, 'reelsloop' ) ) {
-				$reels = true;
-			}
-		}
-		$c['reels_plugin'] = array( 'label' => __( 'Reels de Instagram: plugin activo', 'misioweb-progreso' ), 'ok' => $reels, 'detail' => $reels ? 'activo' : 'no instalado' );
 
 		return apply_filters( 'mw_progreso_checks', $c );
 	}
@@ -246,6 +251,59 @@ final class MisioWeb_Progreso {
 	 * @param int    $page_id Página configurada (0 si no hay).
 	 * @param string $kind    'privacy' o 'terms'.
 	 */
+	/** Plugins activos, incluidos los activados para toda la red en multisitio. */
+	private static function active_plugins() {
+		$plugins = (array) get_option( 'active_plugins', array() );
+		if ( is_multisite() ) {
+			$plugins = array_merge( $plugins, array_keys( (array) get_site_option( 'active_sitewide_plugins', array() ) ) );
+		}
+		return $plugins;
+	}
+
+	/**
+	 * Estado de Reels Loop (plugin de MisioWeb, carpeta reels-loop, clase RL_Plugin). Lee sus
+	 * opciones (rl_settings, rl_success, rl_media) y devuelve solo sí/no y conteos: nunca el
+	 * token ni el ID de la cuenta.
+	 */
+	public static function reels_status() {
+		$file = '';
+		foreach ( self::active_plugins() as $f ) {
+			if ( preg_match( '/reels-?loop/i', $f ) ) {
+				$file = $f;
+			}
+		}
+		$active = class_exists( 'RL_Plugin' ) || '' !== $file;
+		$out    = array( 'active' => $active, 'version' => '', 'account' => false, 'token' => false, 'tags' => 0, 'last_success' => 0, 'meta_ok' => false, 'reels' => 0, 'pages' => array() );
+		if ( ! $active ) {
+			return $out;
+		}
+
+		if ( $file && is_readable( WP_PLUGIN_DIR . '/' . $file ) ) {
+			$data           = get_file_data( WP_PLUGIN_DIR . '/' . $file, array( 'Version' => 'Version' ) );
+			$out['version'] = (string) $data['Version'];
+		}
+		$settings            = (array) get_option( 'rl_settings', array() );
+		$out['account']      = ! empty( $settings['account'] );
+		$out['token']        = defined( 'REELS_LOOP_META_TOKEN' ) && '' !== (string) constant( 'REELS_LOOP_META_TOKEN' );
+		$out['tags']         = count( array_filter( preg_split( '/[\s,]+/u', (string) ( $settings['tags'] ?? '' ) ) ) );
+		$out['last_success'] = (int) get_option( 'rl_success', 0 );
+		$out['meta_ok']      = $out['last_success'] > time() - DAY_IN_SECONDS;
+		$out['reels']        = count( (array) get_option( 'rl_media', array() ) );
+
+		// Páginas publicadas con el reproductor: shortcode en el contenido o en un widget de Elementor.
+		global $wpdb;
+		$out['pages'] = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT p.post_name FROM {$wpdb->posts} p WHERE p.post_status = 'publish' AND p.post_type IN ('page', 'post')
+				AND ( p.post_content LIKE %s OR EXISTS ( SELECT 1 FROM {$wpdb->postmeta} m WHERE m.post_id = p.ID AND m.meta_key = '_elementor_data' AND m.meta_value LIKE %s ) )
+				LIMIT 20",
+				'%' . $wpdb->esc_like( '[reels_loop' ) . '%',
+				'%' . $wpdb->esc_like( 'reels_loop' ) . '%'
+			)
+		);
+		return $out;
+	}
+
 	/** Slugs que se buscan para cada página legal (ajustables con el filtro mw_progreso_legal_slugs). */
 	private static function legal_slugs() {
 		$slugs = array(
@@ -329,13 +387,24 @@ final class MisioWeb_Progreso {
 			}
 		}
 
-		$l[]     = '';
-		$l[]     = '[Plugins activos]';
-		$plugins = (array) get_option( 'active_plugins', array() );
-		if ( is_multisite() ) {
-			$plugins = array_merge( $plugins, array_keys( (array) get_site_option( 'active_sitewide_plugins', array() ) ) );
+		$r   = self::reels_status();
+		$l[] = '';
+		$l[] = '[Reels Loop]';
+		if ( $r['active'] ) {
+			$l[] = 'Versión: ' . ( $r['version'] ? $r['version'] : 'desconocida' );
+			$l[] = 'ID de cuenta cargado: ' . ( $r['account'] ? 'sí' : 'no' ) . ' · REELS_LOOP_META_TOKEN: ' . ( $r['token'] ? 'definido' : 'no definido' );
+			$l[] = 'Hashtags: ' . $r['tags'] . ' · Reels en la lista: ' . $r['reels'];
+			$l[] = 'Última sincronización correcta: ' . ( $r['last_success'] ? wp_date( 'd/m/Y H:i', $r['last_success'] ) : 'nunca' );
+			$status = (array) get_option( 'rl_status', array() );
+			$l[]    = 'Último estado: ' . ( isset( $status['message'] ) ? $status['message'] : '-' );
+			$l[]    = 'Páginas con el reproductor: ' . ( $r['pages'] ? '/' . implode( ', /', $r['pages'] ) : 'ninguna' );
+		} else {
+			$l[] = 'No está activo.';
 		}
-		foreach ( $plugins as $file ) {
+
+		$l[] = '';
+		$l[] = '[Plugins activos]';
+		foreach ( self::active_plugins() as $file ) {
 			$l[] = $file;
 		}
 

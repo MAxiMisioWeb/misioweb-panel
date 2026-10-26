@@ -139,4 +139,21 @@ class SignalMapperTest extends TestCase
         $this->assertSame(1, $after['done']);
         $this->assertSame(6, $after['percent']);
     }
+
+    public function test_reels_loop_signals_mark_the_instagram_section(): void
+    {
+        $project = $this->project('reels');
+
+        $changed = app(SignalMapper::class)->apply($project, [
+            'reels_plugin' => ['ok' => true, 'detail' => 'activo 0.2.1'],
+            'reels_cuenta' => ['ok' => true, 'detail' => 'cuenta: sí, token: sí'],
+            'reels_hashtags' => ['ok' => false, 'detail' => '0 hashtags'],
+            'reels_meta' => ['ok' => true, 'detail' => '3 reels'],
+            'reels_en_pagina' => ['ok' => true, 'detail' => '1 páginas'],
+        ]);
+
+        $this->assertSame(['igp', 'igu', 'igm', 'iga'], $changed);
+        $this->assertSame(['done' => 4, 'total' => 17, 'percent' => 24], $project->progress());
+        $this->assertNull($this->req($project, 'igh'));
+    }
 }

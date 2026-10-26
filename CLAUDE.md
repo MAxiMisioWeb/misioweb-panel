@@ -12,7 +12,7 @@ Un plugin de WordPress (`wp-plugin/misioweb-progreso`) muestra el avance dentro 
 - `panel/prototipo/panel-proyecto.html`: prototipo original en un solo archivo, con datos en localStorage. Quedó como referencia de diseño: el panel real está en `backend/`.
 - `backend/`: Laravel 13 + PostgreSQL. Tiene el esquema de `docs/spec.md`, el catálogo de widgets y requisitos, el cálculo de la propuesta, el mapeo de señales, el login, el circuito de pedidos, el panel de cliente y agencia conectado a la base y la API del plugin (`POST /api/v1/sync`), todo con tests.
 - `deploy/deploy.sh`: instala o actualiza el backend en la VM (Debian 13, Nginx en el puerto 8092 detrás del proxy). Ver `deploy/README.md`.
-- `wp-plugin/misioweb-progreso/misioweb-progreso.php`: v0.3.0 (trae la URL del panel cargada, avisa si falta configurar la conexión y tiene un diagnóstico local en Ajustes que no se envía al panel). Probado con `php -l` y con tests de integración (`wp-plugin/tests/`) en WordPress 7.1.3, WooCommerce 11.2.1 y Mercado Pago 7.8.1, sobre SQLite. Instalado en el WordPress real de Sankalpa y sincronizando con el panel de producción.
+- `wp-plugin/misioweb-progreso/misioweb-progreso.php`: v0.4.0 (detecta Reels Loop y su configuración, trae la URL del panel cargada, avisa si falta configurar la conexión y tiene un diagnóstico local en Ajustes que no se envía al panel). Probado con `php -l` y con tests de integración (`wp-plugin/tests/`) en WordPress 7.1.3, WooCommerce 11.2.1 y Mercado Pago 7.8.1, sobre SQLite. Instalado en el WordPress real de Sankalpa y sincronizando con el panel de producción.
 
 ## Decisiones tomadas
 
@@ -41,7 +41,7 @@ Un plugin de WordPress (`wp-plugin/misioweb-progreso`) muestra el avance dentro 
 1. Precios reales por widget. El cliente los ve al armar su pedido. Sigue abierta la alternativa de paquetes cerrados: Esencial, Conectada y Completa, con widgets sueltos como adicionales.
 2. Confirmar supuestos del plugin:
    - Páginas legales: privacidad por la página configurada en WordPress o los slugs `privacidad`, `politica-de-privacidad`, `privacy-policy`; condiciones por la página de términos de WooCommerce o `condiciones`, `terminos-y-condiciones`, `terminos`, `terms-and-conditions`. Se pueden cambiar con el filtro `mw_progreso_legal_slugs`.
-   - ReelsLoop: se detecta si la ruta del plugin activo contiene `reelsloop`. Falta confirmar el nombre real.
+   - ~~ReelsLoop~~: confirmado con el código de Reels Loop 0.2.1 (plugin de MisioWeb). La carpeta es `reels-loop` y la clase `RL_Plugin`; guarda su configuración en `rl_settings`, `rl_success` y `rl_media`. El plugin de progreso lo detecta por la clase o la carpeta, y lee la cuenta, el token, los hashtags y la sincronización con Meta, siempre como sí/no.
    - Mercado Pago: confirmado con el plugin oficial 7.8.1; sus pasarelas se llaman `woo-mercado-pago-*` y se detectan por `mercado` en el ID.
 
 ## Orden de trabajo sugerido

@@ -222,15 +222,60 @@ if ( 'sin-woo' === $mw_mode ) {
 
 /* ---------- ReelsLoop ---------- */
 
-mw_test( 'ReelsLoop: detecta el plugin activo por nombre de archivo', function () {
-	mw_assert( false === mw_check( 'reels_plugin' )['ok'], 'sin el plugin' );
-	$f = function ( $v ) {
-		return array_merge( (array) $v, array( 'reelsloop/reelsloop.php' ) );
-	};
-	add_filter( 'option_active_plugins', $f );
-	mw_assert( true === mw_check( 'reels_plugin' )['ok'], 'con reelsloop/reelsloop.php activo' );
-	remove_filter( 'option_active_plugins', $f );
-} );
+if ( ! class_exists( 'RL_Plugin' ) ) {
+	mw_test( 'Reels Loop: sin el plugin, se detecta por la carpeta (con o sin guion)', function () {
+		mw_assert( false === mw_check( 'reels_plugin' )['ok'], 'sin el plugin' );
+		mw_assert( null === mw_check( 'reels_cuenta' ), 'sin plugin no se mandan las demás señales de Reels' );
+		foreach ( array( 'reels-loop/reels-loop.php', 'reelsloop/reelsloop.php' ) as $file ) {
+			$f = function ( $v ) use ( $file ) {
+				return array_merge( (array) $v, array( $file ) );
+			};
+			add_filter( 'option_active_plugins', $f );
+			mw_assert( true === mw_check( 'reels_plugin' )['ok'], "con {$file} activo" );
+			remove_filter( 'option_active_plugins', $f );
+		}
+	} );
+} else {
+	// Con Reels Loop real instalado y activo (la carpeta reels-loop no está en este repo).
+	mw_test( 'Reels Loop real: detecta el plugin y su configuración sin mandar datos de la cuenta', function () {
+		global $mw_trash;
+		$c = MisioWeb_Progreso::checks();
+		mw_assert( true === $c['reels_plugin']['ok'] && 0 === strpos( $c['reels_plugin']['detail'], 'activo 0.' ), 'activo con su versión: ' . $c['reels_plugin']['detail'] );
+		mw_assert( false === $c['reels_cuenta']['ok'] && false === $c['reels_meta']['ok'], 'recién instalado: sin cuenta ni conexión con Meta' );
+
+		$old = get_option( 'rl_settings' );
+		update_option( 'rl_settings', array( 'account' => '17841400000000000', 'version' => 'v26.0', 'tags' => 'yoga, meditacion', 'mode' => 'any', 'limit' => 12 ) );
+		if ( ! defined( 'REELS_LOOP_META_TOKEN' ) ) {
+			define( 'REELS_LOOP_META_TOKEN', 'EAAB-token-de-prueba' );
+		}
+		update_option( 'rl_success', time() - 600 );
+		update_option( 'rl_media', array( array( 'id' => '1' ), array( 'id' => '2' ), array( 'id' => '3' ) ) );
+		$page = mw_post( array( 'post_type' => 'page', 'post_name' => 'reels', 'post_content' => '<!-- wp:shortcode -->[reels_loop]<!-- /wp:shortcode -->' ) );
+		$elem = mw_post( array( 'post_type' => 'page', 'post_name' => 'inicio-elementor', 'post_content' => '' ) );
+		update_post_meta( $elem, '_elementor_data', wp_slash( '[{"elType":"widget","widgetType":"shortcode","settings":{"shortcode":"[reels_loop kiosk=\\"1\\"]"}}]' ) );
+
+		$c = MisioWeb_Progreso::checks();
+		mw_assert( true === $c['reels_cuenta']['ok'] && 'cuenta: sí, token: sí' === $c['reels_cuenta']['detail'], 'cuenta y token configurados' );
+		mw_assert( true === $c['reels_hashtags']['ok'] && '2 hashtags' === $c['reels_hashtags']['detail'], 'dos hashtags' );
+		mw_assert( true === $c['reels_meta']['ok'] && 0 === strpos( $c['reels_meta']['detail'], '3 reels' ), 'conexión con Meta: ' . $c['reels_meta']['detail'] );
+		mw_assert( true === $c['reels_en_pagina']['ok'] && '2 páginas' === $c['reels_en_pagina']['detail'], 'reproductor en una página normal y en una de Elementor' );
+
+		update_option( 'rl_success', time() - 2 * DAY_IN_SECONDS );
+		mw_assert( false === MisioWeb_Progreso::checks()['reels_meta']['ok'], 'si hace más de un día que no sincroniza bien, la conexión no está ok' );
+
+		mw_configure();
+		$cap = null;
+		mw_fake_panel( array( 'response' => array( 'code' => 200 ), 'body' => '{}' ), $cap );
+		MisioWeb_Progreso::sync();
+		$body = $cap['args']['body'];
+		mw_assert( false === strpos( $body, '17841400000000000' ) && false === strpos( $body, 'EAAB-token' ) && false === strpos( $body, 'yoga' ), 'al panel no viajan el ID de la cuenta, el token ni los hashtags' );
+		mw_assert( false !== strpos( MisioWeb_Progreso::diagnostics(), 'Páginas con el reproductor: /' ), 'el diagnóstico lista las páginas con el reproductor' );
+
+		false === $old ? delete_option( 'rl_settings' ) : update_option( 'rl_settings', $old );
+		delete_option( 'rl_success' );
+		delete_option( 'rl_media' );
+	} );
+}
 
 /* ---------- Sincronización ---------- */
 

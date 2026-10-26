@@ -23,6 +23,11 @@ class SignalMapper
         'tienda_productos' => ['wcp'],
         'tienda_pasarela' => ['wcm', 'wcc'],
         'reels_plugin' => ['igp'],
+        // Reels Loop (plugin de MisioWeb): el plugin lee su configuración y manda solo sí/no.
+        'reels_cuenta' => ['igu'],          // ID de cuenta cargado y token definido
+        'reels_hashtags' => ['igh'],        // hashtags configurados
+        'reels_meta' => ['igm', 'iga'],     // sincronizó bien con Meta: cuenta profesional vinculada y acceso autorizado
+        // reels_en_pagina (reproductor publicado) es solo informativa: se guarda en signals.
     ];
 
     /**

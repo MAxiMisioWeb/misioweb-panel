@@ -68,6 +68,12 @@ Implementado en `backend/app/Services/ProposalCalculator.php`, con tests en `bac
 | `tienda_productos` | Cantidad de productos cargados (`wcp`) |
 | `tienda_pasarela` | Mercado Pago listo y conectado (`wcm`, `wcc`) |
 | `reels_plugin` | Plugin ReelsLoop activo (`igp`) |
+| `reels_cuenta` | Usuario de Instagram (`igu`): Reels Loop tiene el ID de la cuenta y `REELS_LOOP_META_TOKEN` definido |
+| `reels_hashtags` | Hashtags para filtrar los reels (`igh`) |
+| `reels_meta` | Cuenta profesional vinculada a Facebook y conexión con Meta autorizada (`igm`, `iga`): Reels Loop sincronizó bien con Meta en las últimas 24 horas |
+| `reels_en_pagina` | Ninguno. Es informativa: el reproductor `[reels_loop]` está en una página publicada (también en Elementor) |
+
+Las señales `reels_*` (salvo `reels_plugin`) solo se envían si Reels Loop está activo. Nunca se envían el ID de la cuenta, el token ni los hashtags.
 
 Reglas:
 
