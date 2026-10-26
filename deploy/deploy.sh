@@ -83,6 +83,14 @@ if [ ! -f "$ENV_FILE" ]; then
 	set_env DB_USERNAME "$DB_USER"
 	set_env DB_PASSWORD "$DB_PASS"
 	set_env SESSION_SECURE_COOKIE true
+	# Correo (Rackspace). La contraseña se carga a mano: ver deploy/README.md.
+	set_env MAIL_MAILER smtp
+	set_env MAIL_SCHEME smtps
+	set_env MAIL_HOST secure.emailsrvr.com
+	set_env MAIL_PORT 465
+	set_env MAIL_USERNAME contacto@misioweb.com
+	set_env MAIL_FROM_ADDRESS contacto@misioweb.com
+	set_env GOOGLE_REDIRECT_URI "https://$DOMAIN/auth/google/callback"
 	chown "$DEPLOY_USER:www-data" "$ENV_FILE"
 	chmod 640 "$ENV_FILE"
 	echo "Creado $ENV_FILE (no se sube al repo)."

@@ -2,9 +2,9 @@
 
 ## Modelo de datos
 
-- `users`: id, email, role (`agency` | `client`), client_id (nulo para agencia)
+- `users`: id, email, google_id, password (nulo si entra con Google), role (`prospect` | `client` | `agency`), client_id (nulo para agencia y para prospectos sin pedido)
 - `clients`: id, name
-- `projects`: id, client_id, name, plan, fx_rate, status (`draft` | `in_progress` | `published`), published_at, created_at
+- `projects`: id, client_id, name, plan, fx_rate, status (`requested` | `rejected` | `draft` | `in_progress` | `published`), request_note, requested_at, reviewed_at, reviewed_by, published_at, created_at
 - `widgets`: id, key, name, description, price_usd_impl, price_usd_month, active
 - `project_widgets`: project_id, widget_id
 - `requirement_groups`: id, key, widget_key (nulo = base), name, description, sort. Secciones con nombre y descripción, como las muestra el prototipo.
@@ -16,6 +16,20 @@
 El token del sitio se guarda solo como hash (SHA-256).
 
 Implementado en `backend/database/migrations/2026_10_26_000001_create_panel_tables.php`. El catálogo de widgets y requisitos está en `backend/database/seeders/CatalogSeeder.php`.
+
+## Acceso y pedidos
+
+| Rol | Cómo llega | Qué ve |
+|---|---|---|
+| `prospect` | Se registra con Google o con email (el email hay que verificarlo) | `/pedido`: elige widgets, ve la inversión estimada y manda el pedido |
+| `client` | La agencia aprueba su pedido | `/mi-panel`: su proyecto, el avance y la propuesta |
+| `agency` | `php artisan panel:agencia <email>` | `/agencia`: pedidos para aprobar o rechazar y proyectos activos |
+
+- Al mandar el pedido se crea el cliente y un proyecto `requested` con los widgets elegidos. Se avisa por mail a la agencia.
+- Al aprobar, el proyecto pasa a `in_progress`, el usuario a `client` y se le manda un mail con el acceso. El remitente es `PANEL_SALES_FROM` si está definido.
+- Al rechazar, el proyecto pasa a `rejected` y el prospecto puede mandar otro pedido.
+- Con Google solo se aceptan emails verificados. Si el email ya tiene cuenta, se vincula.
+- Si un mail no sale, la acción se completa igual: el error queda en el log y se avisa en pantalla.
 
 ## Cálculo de la propuesta
 
