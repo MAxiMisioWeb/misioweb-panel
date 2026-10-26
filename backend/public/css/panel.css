@@ -54,3 +54,6 @@ input[type=email],input[type=password]{width:100%;font:300 14px Montserrat,sans-
 nav.top form{margin:0}
 .who{font-size:12px;color:var(--mut)}
 .muted{color:var(--mut);font-size:13px}
+.js .nojs{display:none}
+details summary{cursor:pointer}
+.g a{text-decoration:none}

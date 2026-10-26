@@ -9,8 +9,8 @@ Un plugin de WordPress (`wp-plugin/misioweb-progreso`) muestra el avance dentro 
 
 ## Estado actual
 
-- `panel/prototipo/panel-proyecto.html`: prototipo funcional en un solo archivo. Guarda en localStorage, así que cliente y agencia NO comparten datos todavía. Está cargado con el caso de ejemplo Sankalpa.
-- `backend/`: Laravel 13 + PostgreSQL. Tiene el esquema de `docs/spec.md`, el catálogo de widgets y requisitos, el cálculo de la propuesta, el mapeo de señales, el login y el circuito de pedidos, todo con tests. Todavía no tiene la carga de requisitos ni la API.
+- `panel/prototipo/panel-proyecto.html`: prototipo original en un solo archivo, con datos en localStorage. Quedó como referencia de diseño: el panel real está en `backend/`.
+- `backend/`: Laravel 13 + PostgreSQL. Tiene el esquema de `docs/spec.md`, el catálogo de widgets y requisitos, el cálculo de la propuesta, el mapeo de señales, el login, el circuito de pedidos y el panel de cliente y agencia conectado a la base, todo con tests. Falta la API del plugin (`POST /v1/sync`).
 - `deploy/deploy.sh`: instala o actualiza el backend en la VM (Debian 13, Nginx en el puerto 8092 detrás del proxy). Ver `deploy/README.md`.
 - `wp-plugin/misioweb-progreso/misioweb-progreso.php`: v0.2.0. Probado con `php -l` y con tests de integración (`wp-plugin/tests/`) en WordPress 7.1.3, WooCommerce 11.2.1 y Mercado Pago 7.8.1, sobre SQLite. Falta probarlo en un WordPress real con el WooCommerce oficial y contra el panel real.
 
@@ -32,6 +32,8 @@ Un plugin de WordPress (`wp-plugin/misioweb-progreso`) muestra el avance dentro 
 - El plugin envía solo señales (sí/no y conteos). Nunca credenciales de Mercado Pago ni datos de clientes. Token por sitio, preferentemente en `wp-config.php` como `MW_PROGRESO_TOKEN`. Solo HTTPS.
 - Las claves de Mercado Pago se cargan directo en WooCommerce, nunca en el panel.
 - Cada widget trae sus propios requisitos; los widgets no elegidos no piden nada.
+- Después de aprobado el pedido, solo la agencia cambia widgets y cotización. El cliente los ve, pero para cambiarlos tiene que escribir.
+- Las fotos se cargan por ahora como enlace o nombre de archivo, como en el prototipo. La subida de archivos queda pendiente.
 
 ## Decisiones pendientes
 
@@ -46,7 +48,9 @@ Un plugin de WordPress (`wp-plugin/misioweb-progreso`) muestra el avance dentro 
 1. ~~Validar y probar el plugin (lint de PHP, WordPress local o de prueba).~~ Hecho en v0.2.0; ver `wp-plugin/tests/README.md`.
 2. ~~Definir backend y crear el esquema de `docs/spec.md`.~~ Hecho: Laravel + PostgreSQL, ver `backend/README.md`.
 3. ~~Login separado para cliente y agencia.~~ Hecho: Google o email, roles prospect, client y agency, y circuito de pedido y aprobación.
-4. Llevar el panel a una app real conectada a datos (mantener el diseño del prototipo).
+4. ~~Llevar el panel a una app real conectada a datos (mantener el diseño del prototipo).~~ Hecho:
+   - Cliente: `/mi-panel` con carga de requisitos y guardado automático.
+   - Agencia: `/agencia/proyectos/{id}` con bloqueos por sección, estado interno, propuesta editable, mensaje para el cliente y publicación.
 5. Endpoint `POST /v1/sync` y conectar el plugin.
 6. Plantillas de requisitos por tipo de servicio, para que un cliente nuevo arranque con su checklist en un clic.
 

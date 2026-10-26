@@ -42,7 +42,7 @@
         <h2>Proyectos activos</h2>
         @forelse ($projects as [$project, $progress])
             <div style="margin-top:12px">
-                <div class="gh"><span>{{ $project->client->name }} · {{ $project->name }}</span><span class="chip {{ $progress['percent'] === 100 ? 'ok' : ($progress['percent'] > 0 ? 'part' : '') }}">{{ $progress['done'] }} de {{ $progress['total'] }}</span></div>
+                <div class="gh"><a href="{{ route('agency.project', $project) }}">{{ $project->client->name }} · {{ $project->name }}</a><span class="chip {{ $progress['percent'] === 100 ? 'ok' : ($progress['percent'] > 0 ? 'part' : '') }}">{{ $progress['done'] }} de {{ $progress['total'] }}</span></div>
                 <div class="bar" style="margin-top:6px"><i style="width:{{ $progress['percent'] }}%"></i></div>
             </div>
         @empty

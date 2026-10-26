@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AgencyController;
+use App\Http\Controllers\AgencyProjectController;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -8,6 +9,7 @@ use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ProjectRequestController;
+use App\Http\Controllers\RequirementController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -46,9 +48,19 @@ Route::middleware('auth')->group(function () {
         Route::get('/mi-panel', [ClientController::class, 'index'])->name('client.home');
     });
 
+    // Carga de requisitos: el cliente en su proyecto (ProjectPolicy) y la agencia en cualquiera.
+    Route::put('/proyectos/{project}/requisitos', [RequirementController::class, 'update'])
+        ->middleware(['verified', 'role:client,agency'])
+        ->name('requirements.update');
+
     Route::middleware(['verified', 'role:agency'])->prefix('agencia')->name('agency.')->group(function () {
         Route::get('/', [AgencyController::class, 'index'])->name('home');
         Route::post('/pedidos/{project}/aprobar', [AgencyController::class, 'approve'])->name('approve');
         Route::post('/pedidos/{project}/rechazar', [AgencyController::class, 'reject'])->name('reject');
+
+        Route::get('/proyectos/{project}', [AgencyProjectController::class, 'show'])->name('project');
+        Route::put('/proyectos/{project}', [AgencyProjectController::class, 'update'])->name('project.update');
+        Route::put('/proyectos/{project}/secciones/{group}', [AgencyProjectController::class, 'section'])->name('project.section');
+        Route::post('/proyectos/{project}/publicar', [AgencyProjectController::class, 'publish'])->name('project.publish');
     });
 });
