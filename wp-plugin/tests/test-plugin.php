@@ -239,7 +239,9 @@ mw_test( 'Sync: sin configurar no llama al panel', function () {
 	mw_fake_panel( new WP_Error( 'x', 'no debería llamarse' ), $cap );
 	$s = MisioWeb_Progreso::sync();
 	mw_assert( null === $cap, 'no hubo pedido HTTP' );
-	mw_assert( isset( $s['local']['blog_entradas'] ) && ! isset( $s['error'] ), 'guarda solo el estado local' );
+	mw_assert( isset( $s['local']['blog_entradas'] ), 'guarda el estado local' );
+	mw_assert( isset( $s['error'] ) && false !== strpos( $s['error'], 'URL del panel, ID del sitio, Token' ), 'avisa qué datos faltan' );
+	mw_assert( false !== strpos( mw_render(), 'falta configurar' ), 'el escritorio muestra el aviso' );
 } );
 
 mw_test( 'Sync: envía solo señales y el token va en el encabezado', function () {
@@ -331,6 +333,26 @@ mw_test( 'Ajustes: valida URL y token', function () {
 	mw_assert( 'ab41bc+/=_-.~' === $o['token'], 'el token conserva solo caracteres válidos' );
 	$o = MisioWeb_Progreso::sanitize( null );
 	mw_assert( array( 'api_url' => '', 'site_id' => '', 'token' => '' ) === $o, 'tolera datos vacíos' );
+} );
+
+mw_test( 'Ajustes: avisa si la URL no es https y qué falta configurar', function () {
+	global $wp_settings_errors;
+	$wp_settings_errors = array();
+	$o = MisioWeb_Progreso::sanitize( array( 'api_url' => 'panel.misioweb.com/api', 'site_id' => '1', 'token' => 'x' ) );
+	mw_assert( 'https://panel.misioweb.com/api' === $o['api_url'], 'sin protocolo, completa con https://' );
+	mw_assert( array() === get_settings_errors( MisioWeb_Progreso::OPT ), 'y no muestra error' );
+	$o = MisioWeb_Progreso::sanitize( array( 'api_url' => 'http://panel.misioweb.com/api', 'site_id' => '1', 'token' => 'x' ) );
+	mw_assert( '' === $o['api_url'], 'descarta la URL con http://' );
+	mw_assert( 'api_url' === ( get_settings_errors( MisioWeb_Progreso::OPT )[0]['code'] ?? '' ), 'muestra el error de la URL' );
+	$wp_settings_errors = array();
+
+	update_option( MisioWeb_Progreso::OPT, array( 'api_url' => '', 'site_id' => '1', 'token' => 'x' ) );
+	wp_set_current_user( 1 );
+	ob_start();
+	MisioWeb_Progreso::settings_page();
+	$html = ob_get_clean();
+	wp_set_current_user( 0 );
+	mw_assert( false !== strpos( $html, 'Falta configurar: URL del panel' ), 'la página de ajustes dice qué falta' );
 } );
 
 mw_test( 'Ajustes: el token guardado no se muestra y se mantiene si el campo queda vacío', function () {

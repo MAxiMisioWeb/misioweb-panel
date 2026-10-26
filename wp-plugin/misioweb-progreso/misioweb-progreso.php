@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MisioWeb Progreso
  * Description: Muestra en el escritorio de WordPress qué falta para publicar el sitio y sincroniza el avance con el panel de proyecto de MisioWeb.
- * Version: 0.2.0
+ * Version: 0.2.1
  * Author: MisioWeb
  * Requires at least: 5.3
  * Requires PHP: 7.4
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class MisioWeb_Progreso {
 
-	const VERSION = '0.2.0';
+	const VERSION = '0.2.1';
 	const OPT     = 'mw_progreso_settings';
 	const STATE   = 'mw_progreso_state';
 	const CRON    = 'mw_progreso_sync';
@@ -81,8 +81,14 @@ final class MisioWeb_Progreso {
 			$token = $prev['token'];
 		}
 
+		$raw = isset( $in['api_url'] ) ? trim( (string) $in['api_url'] ) : '';
+		$url = '' === $raw ? '' : esc_url_raw( $raw, array( 'https' ) );
+		if ( '' !== $raw && '' === $url && function_exists( 'add_settings_error' ) ) {
+			add_settings_error( self::OPT, 'api_url', __( 'La URL del panel tiene que empezar con https://, por ejemplo https://panel.misioweb.com/api', 'misioweb-progreso' ) );
+		}
+
 		return array(
-			'api_url' => isset( $in['api_url'] ) ? esc_url_raw( trim( $in['api_url'] ), array( 'https' ) ) : '',
+			'api_url' => $url,
 			'site_id' => isset( $in['site_id'] ) ? sanitize_text_field( $in['site_id'] ) : '',
 			'token'   => $token,
 		);
@@ -96,6 +102,26 @@ final class MisioWeb_Progreso {
 		return isset( $o[ $key ] ) ? $o[ $key ] : '';
 	}
 
+	/**
+	 * Datos de conexión que faltan (vacío si está todo).
+	 *
+	 * @return string[]
+	 */
+	public static function missing_config() {
+		$labels = array(
+			'api_url' => __( 'URL del panel', 'misioweb-progreso' ),
+			'site_id' => __( 'ID del sitio', 'misioweb-progreso' ),
+			'token'   => __( 'Token', 'misioweb-progreso' ),
+		);
+		$missing = array();
+		foreach ( $labels as $key => $label ) {
+			if ( '' === (string) self::opt( $key ) ) {
+				$missing[] = $label;
+			}
+		}
+		return $missing;
+	}
+
 	public static function settings_page() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
@@ -104,7 +130,19 @@ final class MisioWeb_Progreso {
 		$g = function ( $k ) use ( $o ) {
 			return isset( $o[ $k ] ) ? $o[ $k ] : '';
 		};
-		echo '<div class="wrap"><h1>MisioWeb Progreso</h1><form method="post" action="options.php">';
+		echo '<div class="wrap"><h1>MisioWeb Progreso</h1>';
+		settings_errors( self::OPT );
+		$missing = self::missing_config();
+		$state   = get_option( self::STATE );
+		if ( $missing ) {
+			printf( '<div class="notice notice-warning"><p>%s %s</p></div>', esc_html__( 'Falta configurar:', 'misioweb-progreso' ), esc_html( implode( ', ', $missing ) ) );
+		} elseif ( ! empty( $state['error'] ) ) {
+			printf( '<div class="notice notice-error"><p>%s %s</p></div>', esc_html__( 'Última sincronización con error:', 'misioweb-progreso' ), esc_html( $state['error'] ) );
+		} elseif ( ! empty( $state['remote_at'] ) ) {
+			/* translators: %s: fecha y hora. */
+			printf( '<div class="notice notice-success"><p>%s</p></div>', esc_html( sprintf( __( 'Conectado con el panel. Última sincronización: %s', 'misioweb-progreso' ), wp_date( 'd/m H:i', $state['remote_at'] ) ) ) );
+		}
+		echo '<form method="post" action="options.php">';
 		settings_fields( 'mw_progreso' );
 		echo '<table class="form-table">';
 		printf( '<tr><th>%s</th><td><input class="regular-text" type="url" name="%s[api_url]" value="%s" placeholder="https://panel.misioweb.com/api"><p class="description">%s</p></td></tr>', esc_html__( 'URL del panel', 'misioweb-progreso' ), esc_attr( self::OPT ), esc_attr( $g( 'api_url' ) ), esc_html__( 'Solo se aceptan direcciones HTTPS.', 'misioweb-progreso' ) );
@@ -235,6 +273,12 @@ final class MisioWeb_Progreso {
 		$api    = self::opt( 'api_url' );
 		$token  = self::opt( 'token' );
 		$siteid = self::opt( 'site_id' );
+
+		$missing = self::missing_config();
+		if ( $missing ) {
+			/* translators: %s: datos que faltan. */
+			$state['error'] = sprintf( __( 'falta configurar %s en Ajustes → MisioWeb Progreso.', 'misioweb-progreso' ), implode( ', ', $missing ) );
+		}
 
 		if ( $api && $token && $siteid ) {
 			$signals = array();
