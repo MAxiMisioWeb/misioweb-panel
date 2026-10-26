@@ -28,6 +28,7 @@ die() { printf '\033[1;31mError: %s\033[0m\n' "$*" >&2; exit 1; }
 [ "$(id -u)" -eq 0 ] || die "Correlo con sudo: sudo deploy/deploy.sh"
 [ -n "$DEPLOY_USER" ] && [ "$DEPLOY_USER" != root ] || die "Correlo con sudo desde tu usuario (no como root), o definí DEPLOY_USER."
 [ -f "$APP_DIR/artisan" ] || die "No encuentro $APP_DIR/artisan. ¿Estás en el repo misioweb-panel?"
+[ -f "$APP_DIR/.env.example" ] || die "Falta $APP_DIR/.env.example. Corré git pull."
 as_user() { sudo -u "$DEPLOY_USER" -H "$@"; }
 # artisan corre como www-data, el mismo usuario que PHP-FPM, para que logs y caché tengan un solo dueño.
 artisan() { sudo -u www-data php "$APP_DIR/artisan" "$@"; }
@@ -42,11 +43,20 @@ apt-get install -y -q nginx postgresql composer unzip git \
 say "Base de datos PostgreSQL"
 systemctl enable --now postgresql
 ENV_FILE="$APP_DIR/.env"
-if ! sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" | grep -q 1; then
-	[ ! -f "$ENV_FILE" ] || die "Existe $ENV_FILE pero no el usuario $DB_USER en PostgreSQL. Revisalo a mano antes de seguir."
+role_exists() { sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" | grep -q 1; }
+if [ ! -f "$ENV_FILE" ]; then
+	# Sin .env nadie usa la contraseña de la base: se genera una nueva. Cubre también
+	# una instalación anterior que se cortó después de crear el usuario.
 	DB_PASS="$(openssl rand -hex 24)"
-	sudo -u postgres psql -q -c "CREATE ROLE $DB_USER LOGIN PASSWORD '$DB_PASS'"
-	echo "Usuario $DB_USER creado."
+	if role_exists; then
+		sudo -u postgres psql -q -c "ALTER ROLE $DB_USER LOGIN PASSWORD '$DB_PASS'"
+		echo "Usuario $DB_USER ya existía: contraseña renovada."
+	else
+		sudo -u postgres psql -q -c "CREATE ROLE $DB_USER LOGIN PASSWORD '$DB_PASS'"
+		echo "Usuario $DB_USER creado."
+	fi
+elif ! role_exists; then
+	die "Existe $ENV_FILE pero no el usuario $DB_USER en PostgreSQL. Revisalo a mano antes de seguir."
 fi
 if ! sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1; then
 	sudo -u postgres createdb -O "$DB_USER" "$DB_NAME"
@@ -55,7 +65,6 @@ fi
 
 say "Configuración (.env)"
 if [ ! -f "$ENV_FILE" ]; then
-	[ -n "${DB_PASS:-}" ] || die "Falta la contraseña de la base para crear el .env."
 	cp "$APP_DIR/.env.example" "$ENV_FILE"
 	set_env() { sed -i "s#^\#\?\s*$1=.*#$1=$2#" "$ENV_FILE"; grep -q "^$1=" "$ENV_FILE" || echo "$1=$2" >> "$ENV_FILE"; }
 	set_env APP_NAME '"MisioWeb Panel"'
