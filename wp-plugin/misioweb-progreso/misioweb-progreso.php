@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MisioWeb Progreso
  * Description: Muestra en el escritorio de WordPress qué falta para publicar el sitio y sincroniza el avance con el panel de proyecto de MisioWeb.
- * Version: 0.2.2
+ * Version: 0.3.0
  * Author: MisioWeb
  * Requires at least: 5.3
  * Requires PHP: 7.4
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 final class MisioWeb_Progreso {
 
-	const VERSION = '0.2.2';
+	const VERSION = '0.3.0';
 	const OPT     = 'mw_progreso_settings';
 	const STATE   = 'mw_progreso_state';
 	const CRON    = 'mw_progreso_sync';
@@ -171,7 +171,10 @@ final class MisioWeb_Progreso {
 		}
 		echo '</td></tr></table>';
 		submit_button();
-		echo '</form><p><a class="button" href="' . esc_url( self::sync_url() ) . '">' . esc_html__( 'Sincronizar ahora', 'misioweb-progreso' ) . '</a></p></div>';
+		echo '</form><p><a class="button" href="' . esc_url( self::sync_url() ) . '">' . esc_html__( 'Sincronizar ahora', 'misioweb-progreso' ) . '</a></p>';
+		echo '<h2>' . esc_html__( 'Diagnóstico', 'misioweb-progreso' ) . '</h2>';
+		echo '<p class="description">' . esc_html__( 'Lo que ve el plugin en este sitio. No se envía al panel: copialo solo si MisioWeb te lo pide.', 'misioweb-progreso' ) . '</p>';
+		echo '<textarea readonly rows="18" class="large-text code" onclick="this.select()">' . esc_textarea( self::diagnostics() ) . '</textarea></div>';
 	}
 
 	/* ---------- Verificaciones automáticas ---------- */
@@ -243,15 +246,20 @@ final class MisioWeb_Progreso {
 	 * @param int    $page_id Página configurada (0 si no hay).
 	 * @param string $kind    'privacy' o 'terms'.
 	 */
-	private static function legal_page_published( $page_id, $kind ) {
-		if ( $page_id && 'publish' === get_post_status( $page_id ) ) {
-			return true;
-		}
+	/** Slugs que se buscan para cada página legal (ajustables con el filtro mw_progreso_legal_slugs). */
+	private static function legal_slugs() {
 		$slugs = array(
 			'privacy' => array( 'privacidad', 'politica-de-privacidad', 'privacy-policy' ),
 			'terms'   => array( 'condiciones', 'terminos-y-condiciones', 'terminos', 'terms-and-conditions' ),
 		);
-		$slugs = apply_filters( 'mw_progreso_legal_slugs', $slugs );
+		return apply_filters( 'mw_progreso_legal_slugs', $slugs );
+	}
+
+	private static function legal_page_published( $page_id, $kind ) {
+		if ( $page_id && 'publish' === get_post_status( $page_id ) ) {
+			return true;
+		}
+		$slugs = self::legal_slugs();
 		foreach ( isset( $slugs[ $kind ] ) ? (array) $slugs[ $kind ] : array() as $slug ) {
 			$pg = get_page_by_path( $slug );
 			if ( $pg && 'publish' === $pg->post_status ) {
@@ -259,6 +267,79 @@ final class MisioWeb_Progreso {
 			}
 		}
 		return false;
+	}
+
+	/* ---------- Diagnóstico ---------- */
+
+	/**
+	 * Detalle de lo que ve el plugin, para revisar la detección a mano. Se muestra solo en Ajustes
+	 * (administradores) y NO se envía al panel: incluye nombres de páginas y de plugins.
+	 */
+	public static function diagnostics() {
+		$l   = array();
+		$l[] = 'MisioWeb Progreso ' . self::VERSION . ' · WordPress ' . get_bloginfo( 'version' ) . ' · PHP ' . PHP_VERSION;
+		$l[] = 'WooCommerce: ' . ( defined( 'WC_VERSION' ) ? WC_VERSION : 'no activo' );
+
+		$l[] = '';
+		$l[] = '[Señales]';
+		foreach ( self::checks() as $key => $c ) {
+			$l[] = ( $c['ok'] ? 'sí ' : 'no ' ) . $key . ': ' . $c['detail'];
+		}
+
+		$l[]  = '';
+		$l[]  = '[Páginas legales]';
+		$page = function ( $id ) {
+			return $id ? '#' . $id . ' /' . get_post_field( 'post_name', $id ) . ' (' . get_post_status( $id ) . ')' : 'sin configurar';
+		};
+		$l[] = 'Privacidad configurada en WordPress: ' . $page( (int) get_option( 'wp_page_for_privacy_policy' ) );
+		$l[] = 'Términos configurados en WooCommerce: ' . $page( (int) get_option( 'woocommerce_terms_page_id' ) );
+		foreach ( self::legal_slugs() as $kind => $slugs ) {
+			$l[] = 'Slugs buscados (' . $kind . '): ' . implode( ', ', $slugs );
+		}
+
+		$l[]   = '';
+		$l[]   = '[Páginas publicadas]';
+		$pages = get_pages( array( 'post_status' => 'publish', 'number' => 60, 'sort_column' => 'post_title' ) );
+		foreach ( $pages as $p ) {
+			$l[] = '/' . get_page_uri( $p ) . ' — ' . $p->post_title;
+		}
+		if ( ! $pages ) {
+			$l[] = '(ninguna)';
+		}
+
+		$l[]   = '';
+		$l[]   = '[Entradas publicadas] (se cuentan las últimas 30)';
+		$posts = get_posts( array( 'post_type' => 'post', 'post_status' => 'publish', 'numberposts' => 30 ) );
+		$thumb = 0;
+		$long  = 0;
+		foreach ( $posts as $p ) {
+			$has_thumb = has_post_thumbnail( $p );
+			$chars     = mb_strlen( wp_strip_all_tags( $p->post_content ) );
+			$thumb    += $has_thumb ? 1 : 0;
+			$long     += $chars >= 500 ? 1 : 0;
+			$l[]       = ( $has_thumb ? 'con imagen' : 'sin imagen' ) . ', ' . $chars . ' caracteres — ' . $p->post_title;
+		}
+		$l[] = count( $posts ) . ' entradas, ' . $thumb . ' con imagen, ' . $long . ' con 500 caracteres o más.';
+
+		if ( function_exists( 'WC' ) && WC()->payment_gateways() ) {
+			$l[] = '';
+			$l[] = '[Pasarelas de pago]';
+			foreach ( WC()->payment_gateways()->payment_gateways() as $id => $gw ) {
+				$l[] = $id . ': ' . ( 'yes' === $gw->enabled ? 'activa' : 'inactiva' );
+			}
+		}
+
+		$l[]     = '';
+		$l[]     = '[Plugins activos]';
+		$plugins = (array) get_option( 'active_plugins', array() );
+		if ( is_multisite() ) {
+			$plugins = array_merge( $plugins, array_keys( (array) get_site_option( 'active_sitewide_plugins', array() ) ) );
+		}
+		foreach ( $plugins as $file ) {
+			$l[] = $file;
+		}
+
+		return implode( "\n", $l );
 	}
 
 	/* ---------- Sincronización ---------- */

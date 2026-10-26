@@ -12,7 +12,7 @@ Un plugin de WordPress (`wp-plugin/misioweb-progreso`) muestra el avance dentro 
 - `panel/prototipo/panel-proyecto.html`: prototipo original en un solo archivo, con datos en localStorage. Quedó como referencia de diseño: el panel real está en `backend/`.
 - `backend/`: Laravel 13 + PostgreSQL. Tiene el esquema de `docs/spec.md`, el catálogo de widgets y requisitos, el cálculo de la propuesta, el mapeo de señales, el login, el circuito de pedidos, el panel de cliente y agencia conectado a la base y la API del plugin (`POST /api/v1/sync`), todo con tests.
 - `deploy/deploy.sh`: instala o actualiza el backend en la VM (Debian 13, Nginx en el puerto 8092 detrás del proxy). Ver `deploy/README.md`.
-- `wp-plugin/misioweb-progreso/misioweb-progreso.php`: v0.2.2 (trae la URL del panel cargada y avisa si falta configurar la conexión). Probado con `php -l` y con tests de integración (`wp-plugin/tests/`) en WordPress 7.1.3, WooCommerce 11.2.1 y Mercado Pago 7.8.1, sobre SQLite. Instalado en el WordPress real de Sankalpa y sincronizando con el panel de producción.
+- `wp-plugin/misioweb-progreso/misioweb-progreso.php`: v0.3.0 (trae la URL del panel cargada, avisa si falta configurar la conexión y tiene un diagnóstico local en Ajustes que no se envía al panel). Probado con `php -l` y con tests de integración (`wp-plugin/tests/`) en WordPress 7.1.3, WooCommerce 11.2.1 y Mercado Pago 7.8.1, sobre SQLite. Instalado en el WordPress real de Sankalpa y sincronizando con el panel de producción.
 
 ## Decisiones tomadas
 
@@ -23,6 +23,7 @@ Un plugin de WordPress (`wp-plugin/misioweb-progreso`) muestra el avance dentro 
   - La agencia lo aprueba: el usuario pasa a `client` y recibe un mail con el acceso. O lo rechaza, y puede mandar otro.
   - Una cuenta por cliente.
 - Agencia: las cuentas se crean con `php artisan panel:agencia <email>`; no hay registro abierto para la agencia.
+- Clientes que ya trabajan con MisioWeb: la agencia los invita desde el proyecto ("Invitar al cliente"). Se crea o vincula la cuenta como `client` y le llega un enlace para elegir contraseña.
 - Correo: Rackspace (`secure.emailsrvr.com`, SMTP 465 SSL) desde `contacto@misioweb.com`. El mail de aprobación puede salir desde `ventas@misioweb.com` (`PANEL_SALES_FROM`).
 - Los widgets suman precio al presupuesto. Precios en USD, convertidos a pesos con la cotización dólar Banco Nación venta (campo editable).
 - Precios de EJEMPLO (reemplazar por los reales). Base USD 99 de implementación y 14,99 mensual, más:

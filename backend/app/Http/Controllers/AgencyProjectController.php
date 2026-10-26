@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Project;
 use App\Models\Widget;
 use App\Services\Checklist;
+use App\Services\ClientInvitations;
 use App\Services\ProposalCalculator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -78,6 +79,26 @@ class AgencyProjectController extends Controller
         }
 
         return $request->expectsJson() ? response()->json(['ok' => true]) : back()->with('status', 'Estado guardado.');
+    }
+
+    public function invite(Request $request, Project $project, ClientInvitations $invitations): RedirectResponse
+    {
+        Gate::authorize('manage', $project);
+        $data = $request->validate([
+            'email' => ['required', 'email', 'max:255'],
+            'name' => ['required', 'string', 'max:255'],
+        ]);
+
+        try {
+            $result = $invitations->invite($project, $data['email'], $data['name']);
+        } catch (InvalidArgumentException $e) {
+            return back()->withInput()->withErrors(['invite' => $e->getMessage()]);
+        }
+
+        return $result['mailed']
+            ? back()->with('status', "Invitación enviada a {$result['user']->email}.")
+            : back()->with('invite_url', $result['url'])
+                ->withErrors(['review' => 'La cuenta quedó creada, pero no se pudo mandar el mail. Mandale el enlace de abajo por otro medio.']);
     }
 
     /** Registra (o cambia) el sitio WordPress del proyecto y genera un token nuevo. */

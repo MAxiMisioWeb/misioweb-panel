@@ -64,5 +64,6 @@ Route::middleware('auth')->group(function () {
         Route::put('/proyectos/{project}/secciones/{group}', [AgencyProjectController::class, 'section'])->name('project.section');
         Route::post('/proyectos/{project}/publicar', [AgencyProjectController::class, 'publish'])->name('project.publish');
         Route::post('/proyectos/{project}/sitio', [AgencyProjectController::class, 'site'])->name('project.site');
+        Route::post('/proyectos/{project}/invitar', [AgencyProjectController::class, 'invite'])->name('project.invite');
     });
 });

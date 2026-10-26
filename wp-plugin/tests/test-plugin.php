@@ -377,6 +377,31 @@ mw_test( 'Ajustes: el token guardado no se muestra y se mantiene si el campo que
 	wp_set_current_user( 0 );
 } );
 
+/* ---------- Diagnóstico ---------- */
+
+mw_test( 'Diagnóstico: muestra páginas, entradas y plugins, y no viaja al panel', function () {
+	mw_post( array( 'post_type' => 'page', 'post_name' => 'politicas', 'post_title' => 'Políticas del sitio' ) );
+	mw_full_post();
+	$d = MisioWeb_Progreso::diagnostics();
+	mw_assert( false !== strpos( $d, '/politicas — Políticas del sitio' ), 'lista las páginas con su slug' );
+	mw_assert( false !== strpos( $d, '1 entradas, 1 con imagen, 1 con 500 caracteres o más.' ), 'resume las entradas' );
+	mw_assert( false !== strpos( $d, 'misioweb-progreso/misioweb-progreso.php' ), 'lista los plugins activos' );
+	mw_assert( false !== strpos( $d, 'Slugs buscados (privacy): privacidad' ), 'muestra los slugs que busca' );
+
+	wp_set_current_user( 1 );
+	ob_start();
+	MisioWeb_Progreso::settings_page();
+	$html = ob_get_clean();
+	wp_set_current_user( 0 );
+	mw_assert( false !== strpos( $html, 'Diagnóstico' ) && false !== strpos( $html, '[Plugins activos]' ), 'aparece en Ajustes' );
+
+	mw_configure();
+	$cap = null;
+	mw_fake_panel( array( 'response' => array( 'code' => 200 ), 'body' => '{}' ), $cap );
+	MisioWeb_Progreso::sync();
+	mw_assert( false === strpos( $cap['args']['body'], 'Plugins activos' ) && false === strpos( $cap['args']['body'], 'politicas' ), 'nada del diagnóstico se envía al panel' );
+} );
+
 /* ---------- Cron ---------- */
 
 mw_test( 'Cron: ensure_cron programa la sincronización horaria si falta', function () {

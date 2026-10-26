@@ -54,6 +54,25 @@
         <div class="act"><button class="btn" type="button" data-copy="mensaje">Copiar mensaje</button><span class="hint" data-copied="mensaje"></span></div>
     </section>
 
+    <section class="g" id="cliente">
+        <h2>Acceso del cliente</h2>
+        @php $clientUsers = $project->client->users->where('role', 'client'); @endphp
+        <p>{{ $clientUsers->isNotEmpty() ? 'Entra con: '.$clientUsers->pluck('email')->join(', ').'.' : 'Todavía nadie del cliente tiene acceso al panel.' }}</p>
+        @if (session('invite_url'))
+            <textarea readonly id="invite-url" style="min-height:60px;margin-top:8px">{{ session('invite_url') }}</textarea>
+            <div class="act"><button class="btn" type="button" data-copy="invite-url">Copiar enlace</button><span class="hint" data-copied="invite-url"></span></div>
+        @endif
+        <form method="POST" action="{{ route('agency.project.invite', $project) }}">
+            @csrf
+            <label class="fl"><span>Nombre</span><input type="text" name="name" value="{{ old('name') }}" required maxlength="255"></label>
+            <label class="fl"><span>Email</span><input type="email" name="email" value="{{ old('email') }}" required maxlength="255"></label>
+            @error('invite')<div class="err">{{ $message }}</div>@enderror
+            @error('email')<div class="err">{{ $message }}</div>@enderror
+            <div class="act"><button class="btn" type="submit">Invitar al cliente</button>
+                <span class="hint">Le llega un mail con un enlace para elegir su contraseña.</span></div>
+        </form>
+    </section>
+
     <section class="g" id="sitio">
         <h2>Sitio WordPress</h2>
         <p>El plugin MisioWeb Progreso revisa el sitio cada hora y marca solo lo que puede verificar: entradas del blog, páginas legales, productos, Mercado Pago y ReelsLoop.</p>
