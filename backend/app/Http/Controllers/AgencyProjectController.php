@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use InvalidArgumentException;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use ZipArchive;
 
 /**
  * Vista de la agencia de un proyecto: qué se puede hacer hoy, qué bloquea cada sección,
@@ -91,6 +93,23 @@ class AgencyProjectController extends Controller
         $token = $site->issueToken();
 
         return back()->with('site_token', $token)->with('status', 'Token generado. Copialo ahora: no se vuelve a mostrar.');
+    }
+
+    /** Zip del plugin MisioWeb Progreso armado desde el repo (wp-plugin/misioweb-progreso). */
+    public function plugin(): BinaryFileResponse
+    {
+        $dir = base_path('../wp-plugin/misioweb-progreso');
+        abort_unless(is_dir($dir), 404);
+
+        $zipPath = tempnam(sys_get_temp_dir(), 'mwp');
+        $zip = new ZipArchive;
+        $zip->open($zipPath, ZipArchive::OVERWRITE);
+        foreach (glob($dir.'/*.php') as $file) {
+            $zip->addFile($file, 'misioweb-progreso/'.basename($file));
+        }
+        $zip->close();
+
+        return response()->download($zipPath, 'misioweb-progreso.zip', ['Content-Type' => 'application/zip'])->deleteFileAfterSend();
     }
 
     public function publish(Project $project): RedirectResponse

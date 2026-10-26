@@ -58,6 +58,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/pedidos/{project}/aprobar', [AgencyController::class, 'approve'])->name('approve');
         Route::post('/pedidos/{project}/rechazar', [AgencyController::class, 'reject'])->name('reject');
 
+        Route::get('/plugin/misioweb-progreso.zip', [AgencyProjectController::class, 'plugin'])->name('plugin');
         Route::get('/proyectos/{project}', [AgencyProjectController::class, 'show'])->name('project');
         Route::put('/proyectos/{project}', [AgencyProjectController::class, 'update'])->name('project.update');
         Route::put('/proyectos/{project}/secciones/{group}', [AgencyProjectController::class, 'section'])->name('project.section');

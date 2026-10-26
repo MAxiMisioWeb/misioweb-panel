@@ -128,4 +128,21 @@ class SyncTest extends TestCase
             ->assertSee('https://sankalpa.com.ar')
             ->assertDontSee($token);
     }
+
+    public function test_agency_downloads_plugin_zip_and_others_cannot(): void
+    {
+        $agency = User::factory()->create();
+        $agency->forceFill(['role' => User::ROLE_AGENCY])->save();
+
+        $response = $this->actingAs($agency)->get('/agencia/plugin/misioweb-progreso.zip')->assertOk();
+        $zip = new \ZipArchive;
+        $zip->open($response->baseResponse->getFile()->getPathname());
+        $this->assertNotFalse($zip->locateName('misioweb-progreso/misioweb-progreso.php'));
+        $this->assertNotFalse($zip->locateName('misioweb-progreso/uninstall.php'));
+        $zip->close();
+
+        $client = User::factory()->create();
+        $client->forceFill(['role' => User::ROLE_CLIENT])->save();
+        $this->actingAs($client)->get('/agencia/plugin/misioweb-progreso.zip')->assertRedirect(route('client.home'));
+    }
 }

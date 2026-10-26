@@ -57,6 +57,8 @@
     <section class="g" id="sitio">
         <h2>Sitio WordPress</h2>
         <p>El plugin MisioWeb Progreso revisa el sitio cada hora y marca solo lo que puede verificar: entradas del blog, páginas legales, productos, Mercado Pago y ReelsLoop.</p>
+        <div class="act"><a class="btn ghost" href="{{ route('agency.plugin') }}">Descargar plugin (.zip)</a>
+            <span class="hint">En WordPress: Plugins → Añadir nuevo → Subir plugin.</span></div>
 
         @if (session('site_token'))
             <div class="banner ok" style="margin-top:12px">
