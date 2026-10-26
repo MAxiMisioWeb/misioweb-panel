@@ -129,8 +129,9 @@ server {
     charset utf-8;
     client_max_body_size 20m;
 
-    set_real_ip_from $PROXY_IP;
-    real_ip_header X-Forwarded-For;
+    # La IP real del visitante y el HTTPS los resuelve Laravel (TRUSTED_PROXIES). No usar
+    # real_ip acá: Nginx le pasaría a Laravel la IP del visitante en vez de la del proxy y
+    # Laravel dejaría de confiar en X-Forwarded-Proto (formularios con http:// y error 405).
 
     add_header X-Frame-Options "SAMEORIGIN";
     add_header X-Content-Type-Options "nosniff";
