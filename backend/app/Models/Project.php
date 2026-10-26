@@ -9,22 +9,30 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['client_id', 'name', 'plan', 'fx_rate', 'status', 'published_at'])]
+#[Fillable(['client_id', 'name', 'plan', 'fx_rate', 'status', 'request_note', 'requested_at', 'published_at'])]
 class Project extends Model
 {
-    public const STATUSES = ['draft', 'in_progress', 'published'];
+    // requested: pedido de un prospecto esperando revisión. rejected: pedido rechazado.
+    public const STATUSES = ['requested', 'rejected', 'draft', 'in_progress', 'published'];
 
     protected function casts(): array
     {
         return [
             'fx_rate' => 'decimal:4',
             'published_at' => 'datetime',
+            'requested_at' => 'datetime',
+            'reviewed_at' => 'datetime',
         ];
     }
 
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);
+    }
+
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
     }
 
     public function widgets(): BelongsToMany
