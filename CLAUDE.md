@@ -12,7 +12,7 @@ Un plugin de WordPress (`wp-plugin/misioweb-progreso`) muestra el avance dentro 
 - `panel/prototipo/panel-proyecto.html`: prototipo original en un solo archivo, con datos en localStorage. Quedó como referencia de diseño: el panel real está en `backend/`.
 - `backend/`: Laravel 13 + PostgreSQL. Tiene el esquema de `docs/spec.md`, el catálogo de widgets y requisitos, el cálculo de la propuesta, el mapeo de señales, el login, el circuito de pedidos, el panel de cliente y agencia conectado a la base y la API del plugin (`POST /api/v1/sync`), todo con tests.
 - `deploy/deploy.sh`: instala o actualiza el backend en la VM (Debian 13, Nginx en el puerto 8092 detrás del proxy). Ver `deploy/README.md`.
-- `wp-plugin/misioweb-progreso/misioweb-progreso.php`: v0.2.2 (trae la URL del panel cargada y avisa si falta configurar la conexión). Probado con `php -l` y con tests de integración (`wp-plugin/tests/`) en WordPress 7.1.3, WooCommerce 11.2.1 y Mercado Pago 7.8.1, sobre SQLite. Falta probarlo en un WordPress real con el WooCommerce oficial y contra el panel real.
+- `wp-plugin/misioweb-progreso/misioweb-progreso.php`: v0.2.2 (trae la URL del panel cargada y avisa si falta configurar la conexión). Probado con `php -l` y con tests de integración (`wp-plugin/tests/`) en WordPress 7.1.3, WooCommerce 11.2.1 y Mercado Pago 7.8.1, sobre SQLite. Instalado en el WordPress real de Sankalpa y sincronizando con el panel de producción.
 
 ## Decisiones tomadas
 
@@ -53,7 +53,7 @@ Un plugin de WordPress (`wp-plugin/misioweb-progreso`) muestra el avance dentro 
    - Agencia: `/agencia/proyectos/{id}` con bloqueos por sección, estado interno, propuesta editable, mensaje para el cliente y publicación.
 5. ~~Endpoint `POST /v1/sync` y conectar el plugin.~~ Hecho:
    - `POST /api/v1/sync`. La agencia registra el sitio y genera el token desde la vista del proyecto.
-   - Probado con el plugin v0.2.0 contra el panel en local. Falta conectarlo al WordPress real de Sankalpa.
+   - Conectado y sincronizando con el WordPress real de Sankalpa (sitio ID 1) desde el 26/10/2026.
 6. Plantillas de requisitos por tipo de servicio, para que un cliente nuevo arranque con su checklist en un clic.
 
 ## Convenciones
