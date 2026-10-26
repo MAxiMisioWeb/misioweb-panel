@@ -10,7 +10,7 @@ Un plugin de WordPress (`wp-plugin/misioweb-progreso`) muestra el avance dentro 
 ## Estado actual
 
 - `panel/prototipo/panel-proyecto.html`: prototipo original en un solo archivo, con datos en localStorage. Quedó como referencia de diseño: el panel real está en `backend/`.
-- `backend/`: Laravel 13 + PostgreSQL. Tiene el esquema de `docs/spec.md`, el catálogo de widgets y requisitos, el cálculo de la propuesta, el mapeo de señales, el login, el circuito de pedidos y el panel de cliente y agencia conectado a la base, todo con tests. Falta la API del plugin (`POST /v1/sync`).
+- `backend/`: Laravel 13 + PostgreSQL. Tiene el esquema de `docs/spec.md`, el catálogo de widgets y requisitos, el cálculo de la propuesta, el mapeo de señales, el login, el circuito de pedidos, el panel de cliente y agencia conectado a la base y la API del plugin (`POST /api/v1/sync`), todo con tests.
 - `deploy/deploy.sh`: instala o actualiza el backend en la VM (Debian 13, Nginx en el puerto 8092 detrás del proxy). Ver `deploy/README.md`.
 - `wp-plugin/misioweb-progreso/misioweb-progreso.php`: v0.2.0. Probado con `php -l` y con tests de integración (`wp-plugin/tests/`) en WordPress 7.1.3, WooCommerce 11.2.1 y Mercado Pago 7.8.1, sobre SQLite. Falta probarlo en un WordPress real con el WooCommerce oficial y contra el panel real.
 
@@ -51,7 +51,9 @@ Un plugin de WordPress (`wp-plugin/misioweb-progreso`) muestra el avance dentro 
 4. ~~Llevar el panel a una app real conectada a datos (mantener el diseño del prototipo).~~ Hecho:
    - Cliente: `/mi-panel` con carga de requisitos y guardado automático.
    - Agencia: `/agencia/proyectos/{id}` con bloqueos por sección, estado interno, propuesta editable, mensaje para el cliente y publicación.
-5. Endpoint `POST /v1/sync` y conectar el plugin.
+5. ~~Endpoint `POST /v1/sync` y conectar el plugin.~~ Hecho:
+   - `POST /api/v1/sync`. La agencia registra el sitio y genera el token desde la vista del proyecto.
+   - Probado con el plugin v0.2.0 contra el panel en local. Falta conectarlo al WordPress real de Sankalpa.
 6. Plantillas de requisitos por tipo de servicio, para que un cliente nuevo arranque con su checklist en un clic.
 
 ## Convenciones

@@ -44,7 +44,12 @@ Implementado en `backend/app/Services/ProposalCalculator.php`, con tests en `bac
 
 ## Endpoints
 
-- `POST /v1/sync` (Authorization: Bearer token del sitio)
+- `POST /api/v1/sync` (Authorization: Bearer token del sitio). En el plugin, "URL del panel" es `https://panel.misioweb.com/api`.
+  - La agencia registra el sitio y genera el token desde la vista del proyecto. El token se muestra una sola vez y se guarda como hash.
+  - `site_id` tiene que coincidir con el sitio del token (si no, 403). Sin token o con token inválido, 401.
+  - Cada señal acepta solo `ok` (booleano) y `detail` (texto de hasta 255 caracteres), con un máximo de 50 señales. Cualquier otro campo se rechaza (422).
+  - Las señales se guardan 90 días. Límite: 30 pedidos por minuto.
+  - `items` devuelve una línea por sección (por ejemplo, "Blog (2 de 6)").
   - Body: `{ site_id, site, plugin, wp, signals: { <key>: { ok: bool, detail: string } } }`
   - Respuesta: `{ progress: 0-100, message: string, items: [{ label, status: "done" | "pending" }] }`
 - Implementado como web (sesión y CSRF), no como API:

@@ -27,6 +27,7 @@ class AgencyProjectController extends Controller
         Gate::authorize('manage', $project);
         $groups = $this->checklist->groups($project);
         $proposal = $calculator->forProject($project);
+        $site = $project->sites()->first();
 
         return view('agency.project', [
             'project' => $project->load('client.users', 'widgets'),
@@ -37,6 +38,11 @@ class AgencyProjectController extends Controller
             'proposalText' => $proposal->text($project->client->name),
             'message' => $this->checklist->message($project->client->name, $groups),
             'widgets' => Widget::active()->orderBy('sort')->get(),
+            'site' => $site,
+            // Última señal de cada tipo.
+            'signals' => $site
+                ? $site->signals()->latest('created_at')->latest('id')->limit(200)->get()->unique('key')->sortBy('key')->values()
+                : collect(),
         ]);
     }
 
@@ -70,6 +76,21 @@ class AgencyProjectController extends Controller
         }
 
         return $request->expectsJson() ? response()->json(['ok' => true]) : back()->with('status', 'Estado guardado.');
+    }
+
+    /** Registra (o cambia) el sitio WordPress del proyecto y genera un token nuevo. */
+    public function site(Request $request, Project $project): RedirectResponse
+    {
+        Gate::authorize('manage', $project);
+        $data = $request->validate([
+            'url' => ['required', 'url:https', 'max:255'],
+        ], ['url.url' => 'Tiene que ser una dirección https://, por ejemplo https://sankalpa.com.ar']);
+
+        $site = $project->sites()->first() ?? $project->sites()->make();
+        $site->url = rtrim($data['url'], '/');
+        $token = $site->issueToken();
+
+        return back()->with('site_token', $token)->with('status', 'Token generado. Copialo ahora: no se vuelve a mostrar.');
     }
 
     public function publish(Project $project): RedirectResponse

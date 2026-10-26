@@ -99,6 +99,20 @@ sudo -u www-data php artisan panel:agencia otra-persona@ejemplo.com --name="Nomb
 
 Cada comando muestra un enlace para elegir contraseña, que vence en 60 minutos. Si el email es de Google, también se puede ingresar con "Ingresar con Google".
 
+## Conectar el WordPress de un cliente
+
+1. En el panel, entrá como agencia al proyecto. En **Sitio WordPress**, cargá la dirección (`https://...`) y apretá **Registrar sitio y generar token**. Copiá la configuración: el token se muestra una sola vez.
+2. En el WordPress del cliente, subí el plugin desde *Plugins → Añadir nuevo → Subir plugin* con el zip de `wp-plugin/misioweb-progreso` y activalo.
+3. El token va en `wp-config.php`, antes de la línea `/* That's all, stop editing! */`:
+   ```php
+   define( 'MW_PROGRESO_TOKEN', 'el-token' );
+   ```
+   Si no tenés acceso a los archivos, pegalo en el campo Token de los Ajustes del plugin.
+4. En *Ajustes → MisioWeb Progreso*, cargá la URL del panel (`https://panel.misioweb.com/api`) y el ID del sitio. Guardá y apretá **Sincronizar ahora**.
+5. En el escritorio de WordPress aparece "Avance de tu sitio · MisioWeb". En el panel, el proyecto muestra la última sincronización y las señales recibidas.
+
+Después sincroniza solo cada hora y cada vez que se publica algo.
+
 ## Comandos útiles
 
 Los comandos de `artisan` corren como `www-data`, el mismo usuario que el servidor web:

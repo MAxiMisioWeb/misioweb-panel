@@ -54,6 +54,47 @@
         <div class="act"><button class="btn" type="button" data-copy="mensaje">Copiar mensaje</button><span class="hint" data-copied="mensaje"></span></div>
     </section>
 
+    <section class="g" id="sitio">
+        <h2>Sitio WordPress</h2>
+        <p>El plugin MisioWeb Progreso revisa el sitio cada hora y marca solo lo que puede verificar: entradas del blog, páginas legales, productos, Mercado Pago y ReelsLoop.</p>
+
+        @if (session('site_token'))
+            <div class="banner ok" style="margin-top:12px">
+                <b>Configuración del plugin</b> (el token se muestra una sola vez):
+                <textarea readonly id="config-plugin" style="min-height:120px;margin-top:8px;font-family:monospace">URL del panel: {{ url('/api') }}
+ID del sitio: {{ $site->id }}
+Token: {{ session('site_token') }}
+
+O en wp-config.php:
+define( 'MW_PROGRESO_TOKEN', '{{ session('site_token') }}' );</textarea>
+                <div class="act"><button class="btn" type="button" data-copy="config-plugin">Copiar</button><span class="hint" data-copied="config-plugin"></span></div>
+            </div>
+        @endif
+
+        @if ($site)
+            <p style="margin-top:8px">
+                <b>{{ $site->url }}</b> · ID {{ $site->id }} ·
+                {{ $site->last_sync_at ? 'última sincronización '.$site->last_sync_at->format('d/m/Y H:i') : 'todavía no sincronizó' }}
+            </p>
+            @if ($signals->isNotEmpty())
+                <ul class="m">
+                    @foreach ($signals as $sig)
+                        <li>{{ $sig->ok ? '✔' : '✖' }} {{ $sig->key }}: {{ $sig->detail }}</li>
+                    @endforeach
+                </ul>
+            @endif
+        @endif
+
+        <form method="POST" action="{{ route('agency.project.site', $project) }}" @if ($site) onsubmit="return confirm('Se genera un token nuevo y el anterior deja de funcionar. ¿Seguir?')" @endif>
+            @csrf
+            <label class="fl"><span>Dirección del sitio</span>
+                <input type="text" name="url" value="{{ old('url', $site?->url) }}" placeholder="https://sankalpa.com.ar" inputmode="url">
+            </label>
+            @error('url')<div class="err">{{ $message }}</div>@enderror
+            <div class="act"><button class="btn {{ $site ? 'ghost' : '' }}" type="submit">{{ $site ? 'Generar token nuevo' : 'Registrar sitio y generar token' }}</button></div>
+        </form>
+    </section>
+
     @if ($project->status === 'in_progress')
         <section class="g">
             <h2>Publicación</h2>
