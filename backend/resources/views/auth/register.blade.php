@@ -6,7 +6,9 @@
 
     @include('auth.google-button', ['label' => 'Crear cuenta con Google', 'style' => 'margin-top:16px'])
 
-    <div class="or">o con tu email</div>
+    @if (config('services.google.client_id'))
+        <div class="or">o con tu email</div>
+    @endif
 
     <form method="POST" action="{{ route('register') }}">
         @csrf

@@ -180,6 +180,16 @@ class AuthTest extends TestCase
         $this->assertSame(1, User::count());
     }
 
+    public function test_google_button_hidden_until_configured(): void
+    {
+        config(['services.google.client_id' => null]);
+        $this->get('/ingresar')->assertDontSee('Ingresar con Google');
+        $this->get('/auth/google')->assertRedirect(route('login'))->assertSessionHasErrors('email');
+
+        config(['services.google.client_id' => 'abc.apps.googleusercontent.com']);
+        $this->get('/ingresar')->assertSee('Ingresar con Google');
+    }
+
     public function test_google_rejects_unverified_email(): void
     {
         $this->fakeGoogle('g-3', 'raro@example.com', verified: false);

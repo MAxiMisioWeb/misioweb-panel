@@ -5,7 +5,9 @@
 
     @include('auth.google-button', ['label' => 'Ingresar con Google'])
 
-    <div class="or">o con tu email</div>
+    @if (config('services.google.client_id'))
+        <div class="or">o con tu email</div>
+    @endif
 
     <form method="POST" action="{{ route('login') }}">
         @csrf

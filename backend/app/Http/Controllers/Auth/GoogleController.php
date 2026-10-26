@@ -18,6 +18,10 @@ class GoogleController extends Controller
 {
     public function redirect(): RedirectResponse
     {
+        if (! config('services.google.client_id')) {
+            return redirect()->route('login')->withErrors(['email' => 'El ingreso con Google todavía no está disponible. Ingresá con tu email.']);
+        }
+
         return Socialite::driver('google')->redirect();
     }
 
