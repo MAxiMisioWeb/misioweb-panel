@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Notifications\NewProjectRequest;
 use App\Notifications\ProjectApproved;
 use Database\Seeders\CatalogSeeder;
+use Database\Seeders\SankalpaDemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -30,8 +31,9 @@ class ProjectRequestTest extends TestCase
         return $user;
     }
 
-    public function test_prospect_sees_widgets_with_prices(): void
+    public function test_prospect_sees_widgets_with_prices_when_enabled(): void
     {
+        config(['panel.show_prices' => true]);
         $this->actingAs($this->user(User::ROLE_PROSPECT))
             ->get('/pedido')
             ->assertOk()
@@ -82,11 +84,31 @@ class ProjectRequestTest extends TestCase
         $this->actingAs($prospect->fresh())->get('/pedido')->assertRedirect(route('client.home'));
         $this->actingAs($prospect->fresh())->get('/mi-panel')
             ->assertOk()
-            ->assertSee('$457.470')
-            ->assertSee('$68.834,70');
+            ->assertSee('Tu sitio incluye')
+            ->assertDontSee('$457.470'); // precios ocultos por defecto (PANEL_SHOW_PRICES)
 
         // Aprobar de nuevo no hace nada.
         $this->actingAs($agency)->post("/agencia/pedidos/{$project->id}/aprobar")->assertSessionHasErrors('review');
+    }
+
+    public function test_prices_are_hidden_from_prospect_and_client_by_default(): void
+    {
+        $this->assertFalse(config('panel.show_prices'));
+
+        $this->actingAs($this->user(User::ROLE_PROSPECT))->get('/pedido')
+            ->assertOk()
+            ->assertSee('Tienda con Mercado Pago')
+            ->assertDontSee('USD')
+            ->assertDontSee('Inversión estimada');
+
+        $this->seed(SankalpaDemoSeeder::class);
+        $project = Project::where('status', 'in_progress')->sole();
+        $client = $this->user(User::ROLE_CLIENT);
+        $client->forceFill(['client_id' => $project->client_id])->save();
+        $this->actingAs($client)->get('/mi-panel')->assertOk()->assertDontSee('$457.470')->assertDontSee('Abono mensual');
+
+        // La agencia los ve igual.
+        $this->actingAs($this->user(User::ROLE_AGENCY))->get("/agencia/proyectos/{$project->id}")->assertSee('$457.470');
     }
 
     public function test_reject_keeps_prospect_who_can_send_again(): void

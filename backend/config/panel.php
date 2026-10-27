@@ -17,6 +17,10 @@ return [
         'price_usd_month' => env('PANEL_BASE_USD_MONTH', '14.99'),
     ],
 
+    // Mostrar precios al prospecto y al cliente (pedido, resumen y propuesta). La agencia los ve siempre.
+    // Apagado mientras dure el período de desarrollo.
+    'show_prices' => (bool) env('PANEL_SHOW_PRICES', false),
+
     // Cotización dólar Banco Nación venta para los pedidos nuevos. Cada proyecto guarda la suya
     // y la agencia la puede ajustar al aprobar.
     'fx_rate' => env('PANEL_FX_RATE', '1530'),

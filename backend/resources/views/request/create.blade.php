@@ -1,4 +1,5 @@
 @php use App\Support\Money; @endphp
+@php $showPrices = config('panel.show_prices'); @endphp
 @extends('layouts.app')
 @section('title', 'Tu pedido')
 @section('heading', 'Armá tu sitio')
@@ -22,16 +23,17 @@
 
             <section class="g">
                 <h2>Elegí los widgets de tu web</h2>
-                <p>Sumá lo que necesitás. La inversión se actualiza sola y cada widget pide solo la información que necesita.</p>
+                <p>Sumá lo que necesitás. {{ $showPrices ? 'La inversión se actualiza sola y cada' : 'Cada' }} widget pide solo la información que necesita.</p>
                 @foreach ($widgets as $w)
                     <label class="ck">
                         <input type="checkbox" name="widgets[]" value="{{ $w->key }}" @checked(in_array($w->key, $selected, true))
                             data-impl="{{ Money::toScaled($w->price_usd_impl, 2) }}" data-month="{{ Money::toScaled($w->price_usd_month, 2) }}">
-                        <div>{{ $w->name }}<small>{{ $w->description }} · suma {{ Money::usd(Money::toScaled($w->price_usd_impl, 2)) }} y {{ Money::usd(Money::toScaled($w->price_usd_month, 2)) }} por mes</small></div>
+                        <div>{{ $w->name }}<small>{{ $w->description }}{{ $showPrices ? ' · suma '.Money::usd(Money::toScaled($w->price_usd_impl, 2)).' y '.Money::usd(Money::toScaled($w->price_usd_month, 2)).' por mes' : '' }}</small></div>
                     </label>
                 @endforeach
                 @error('widgets.*')<div class="err">{{ $message }}</div>@enderror
 
+                @if ($showPrices)
                 <div class="banner ok" style="margin:14px 0 0" id="estimado"
                     data-base-impl="{{ Money::toScaled($base['price_usd_impl'], 2) }}" data-base-month="{{ Money::toScaled($base['price_usd_month'], 2) }}"
                     data-fx="{{ $proposal->fxRate10k }}">
@@ -39,6 +41,7 @@
                     Inversión estimada: <b data-out="impl">{{ Money::usd($proposal->implUsd) }}</b> de implementación y <b data-out="month">{{ Money::usd($proposal->monthUsd) }}</b> por mes
                     (<span data-out="ars">{{ Money::ars($proposal->implArs) }} y {{ Money::ars($proposal->monthArs) }}</span> al dólar de hoy).
                 </div>
+                @endif
             </section>
 
             <section class="g">
@@ -53,6 +56,7 @@
             </section>
         </form>
 
+        @if ($showPrices)
         <script>
             // Recalcula la inversión al marcar widgets (centavos enteros, igual que el servidor).
             (function () {
@@ -76,5 +80,6 @@
                 update();
             })();
         </script>
+        @endif
     @endif
 @endsection

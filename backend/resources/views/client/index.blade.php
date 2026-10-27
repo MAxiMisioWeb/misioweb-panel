@@ -1,4 +1,5 @@
 @php use App\Support\Money; @endphp
+@php $showPrices = config('panel.show_prices'); @endphp
 @extends('layouts.app')
 @section('title', 'Mi panel')
 @section('heading', $project?->client->name ?? 'Mi panel')
@@ -14,8 +15,10 @@
     @else
         <div class="sum">
             <div><small>Proyecto</small><b>{{ $project->name }}</b></div>
-            <div><small>Implementación</small><b>{{ Money::ars($proposal->implArs) }}</b></div>
-            <div><small>Abono mensual</small><b>{{ Money::ars($proposal->monthArs) }}</b></div>
+            @if ($showPrices)
+                <div><small>Implementación</small><b>{{ Money::ars($proposal->implArs) }}</b></div>
+                <div><small>Abono mensual</small><b>{{ Money::ars($proposal->monthArs) }}</b></div>
+            @endif
             <div style="grid-column:1/-1"><small>Información recibida: <b data-total-pct>{{ $totals['percent'] }}%</b></small><div class="bar"><i data-total-bar style="width:{{ $totals['percent'] }}%"></i></div></div>
         </div>
 
@@ -31,9 +34,11 @@
         @include('projects.sections', ['agency' => false])
 
         <section class="g">
-            <h2>Tu propuesta</h2>
+            <h2>{{ $showPrices ? 'Tu propuesta' : 'Tu sitio incluye' }}</h2>
             <p>Sitio base{{ $project->widgets->isNotEmpty() ? ', '.$project->widgets->pluck('name')->join(', ') : '' }}. Si querés sumar o sacar widgets, escribinos.</p>
-            <textarea readonly style="min-height:220px;margin-top:10px">{{ $proposal->text($project->client->name) }}</textarea>
+            @if ($showPrices)
+                <textarea readonly style="min-height:220px;margin-top:10px">{{ $proposal->text($project->client->name) }}</textarea>
+            @endif
         </section>
     @endif
 @endsection
