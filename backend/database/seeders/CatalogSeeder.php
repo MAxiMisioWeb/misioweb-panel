@@ -28,17 +28,25 @@ class CatalogSeeder extends Seeder
 
     /**
      * Secciones en el orden en que se muestran. widget = null: sección base.
-     * Cada campo: [clave, etiqueta, tipo, subgrupo, ayuda].
+     * Cada campo: [clave, etiqueta, tipo, subgrupo, ayuda, formato de imagen].
      */
     public const GROUPS = [
-        'sec' => [null, 'Secciones de la portada', 'Tres bloques de actividades. Cada uno necesita título, descripción y foto.', [
-            ['s1t', 'Título', 'text', 'Bloque 1'], ['s1d', 'Descripción', 'area', 'Bloque 1'], ['s1f', 'Foto', 'image', 'Bloque 1'],
-            ['s2t', 'Título', 'text', 'Bloque 2'], ['s2d', 'Descripción', 'area', 'Bloque 2'], ['s2f', 'Foto', 'image', 'Bloque 2'],
-            ['s3t', 'Título', 'text', 'Bloque 3'], ['s3d', 'Descripción', 'area', 'Bloque 3'], ['s3f', 'Foto', 'image', 'Bloque 3'],
+        'sec' => [null, 'Secciones de la portada', 'Un banner principal y tres bloques de actividades. Cada foto se pide en dos versiones: para computadora y para tablet y celular.', [
+            ['bnd', 'Foto para computadora', 'image', 'Banner principal', 'Va a todo el ancho de la pantalla.', '16:9'],
+            ['bnm', 'Foto para tablet y celular', 'image', 'Banner principal', null, '4:5'],
+            ['s1t', 'Título', 'text', 'Bloque 1'], ['s1d', 'Descripción', 'area', 'Bloque 1'],
+            ['s1f', 'Foto para computadora', 'image', 'Bloque 1', 'Va al lado del texto, en medio contenedor.', '7:5'],
+            ['s1m', 'Foto para tablet y celular', 'image', 'Bloque 1', null, '4:5'],
+            ['s2t', 'Título', 'text', 'Bloque 2'], ['s2d', 'Descripción', 'area', 'Bloque 2'],
+            ['s2f', 'Foto para computadora', 'image', 'Bloque 2', 'Va al lado del texto, en medio contenedor.', '7:5'],
+            ['s2m', 'Foto para tablet y celular', 'image', 'Bloque 2', null, '4:5'],
+            ['s3t', 'Título', 'text', 'Bloque 3'], ['s3d', 'Descripción', 'area', 'Bloque 3'],
+            ['s3f', 'Foto para computadora', 'image', 'Bloque 3', 'Va al lado del texto, en medio contenedor.', '7:5'],
+            ['s3m', 'Foto para tablet y celular', 'image', 'Bloque 3', null, '4:5'],
         ]],
         'blog' => ['blog', 'Blog', 'Mínimo 2 entradas completas para publicar con contenido real.', [
-            ['b1t', 'Título', 'text', 'Entrada 1'], ['b1x', 'Texto completo', 'area', 'Entrada 1'], ['b1i', 'Imagen de portada', 'image', 'Entrada 1'],
-            ['b2t', 'Título', 'text', 'Entrada 2'], ['b2x', 'Texto completo', 'area', 'Entrada 2'], ['b2i', 'Imagen de portada', 'image', 'Entrada 2'],
+            ['b1t', 'Título', 'text', 'Entrada 1'], ['b1x', 'Texto completo', 'area', 'Entrada 1'], ['b1i', 'Imagen de portada', 'image', 'Entrada 1', null, '16:9'],
+            ['b2t', 'Título', 'text', 'Entrada 2'], ['b2x', 'Texto completo', 'area', 'Entrada 2'], ['b2i', 'Imagen de portada', 'image', 'Entrada 2', null, '16:9'],
         ]],
         'ig' => ['reels', 'Instagram (ReelsLoop)', 'Muestra los reels filtrados por hashtag. Requiere vincular la cuenta con Meta.', [
             ['igu', 'Usuario de Instagram', 'text'],
@@ -104,6 +112,7 @@ class CatalogSeeder extends Seeder
                     'type' => $f[2],
                     'subgroup' => $f[3] ?? null,
                     'hint' => $f[4] ?? null,
+                    'aspect' => $f[5] ?? null,
                     'sort' => ($i + 1) * 10,
                 ]);
             }

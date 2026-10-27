@@ -54,11 +54,11 @@ class SyncTest extends TestCase
             'reels_plugin' => ['ok' => false, 'detail' => 'no instalado'],
         ])
             ->assertOk()
-            // 7 cargados + 4 del blog (b1t y b2t ya estaban) + 1 productos + 2 pasarela = 14 de 31
-            ->assertJsonPath('progress', 45)
+            // 7 cargados + 4 del blog (b1t y b2t ya estaban) + 1 productos + 2 pasarela = 14 de 36
+            ->assertJsonPath('progress', 39)
             ->assertJsonPath('items.1', ['label' => 'Blog (6 de 6)', 'status' => 'done'])
             ->assertJsonPath('items.3', ['label' => 'Tienda (WooCommerce) (3 de 4)', 'status' => 'pending'])
-            ->assertJsonPath('message', fn ($m) => str_starts_with($m, 'Faltan 17 puntos'));
+            ->assertJsonPath('message', fn ($m) => str_starts_with($m, 'Faltan 22 puntos'));
 
         $this->assertSame('plugin', ProjectRequirement::where('template_key', 'wcc')->value('source'));
         $this->assertFalse((bool) ProjectRequirement::where('template_key', 'mkp')->value('done'));
@@ -88,7 +88,7 @@ class SyncTest extends TestCase
 
     public function test_empty_and_unknown_signals_are_fine(): void
     {
-        $this->sync([])->assertOk()->assertJsonPath('progress', 23);
+        $this->sync([])->assertOk()->assertJsonPath('progress', 19);
         $this->sync(['senal_futura' => ['ok' => true, 'detail' => '']])->assertOk();
     }
 

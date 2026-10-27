@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Varela+Round&display=swap" rel="stylesheet">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="{{ asset('css/panel.css') }}">
+    @stack('head')
     <script src="{{ asset('js/panel.js') }}" defer></script>
 </head>
 <body>

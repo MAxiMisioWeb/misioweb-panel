@@ -47,12 +47,24 @@
                         <div class="img-box" data-img-box @if (! $f['image_url']) hidden @endif>
                             <img src="{{ $f['image_url'] }}" alt="{{ $f['label'] }}" loading="lazy" data-img>
                         </div>
+                        @if ($f['aspect'])
+                            <div class="hint">Formato {{ $f['aspect'] }}{{ $f['size'] ? ' ('.$f['size'][0].' × '.$f['size'][1].' px)' : '' }}. Al elegirla, la encuadrás y se recorta a ese formato.{{ $f['hint'] ? ' '.$f['hint'] : '' }}</div>
+                        @elseif ($f['hint'])
+                            <div class="hint">{{ $f['hint'] }}</div>
+                        @endif
+                        @if ($f['image_url'] && ! $f['aspect_ok'])
+                            <div class="hint" style="color:var(--warn)" data-aspect-warning>Esta foto no tiene el formato {{ $f['aspect'] }}. Volvé a subirla para encuadrarla.</div>
+                        @endif
+                        @if ($agency && $f['original_url'])
+                            <div class="hint"><a href="{{ $f['original_url'] }}" target="_blank" rel="noopener">Ver la foto original, sin recortar</a></div>
+                        @endif
                         @if ($f['value'] && ! $f['image_url'])
                             <div class="hint">Antes se cargó como texto: {{ $f['value'] }}</div>
                         @endif
                         <div class="act">
                             <label class="btn ghost file">
                                 <input type="file" name="image" accept="image/jpeg,image/png,image/webp" form="img-{{ $g['key'] }}-{{ $f['key'] }}" data-image-input="{{ $f['key'] }}"
+                                    @if ($f['aspect']) data-aspect="{{ $f['aspect'] }}" data-width="{{ $f['size'][0] }}" data-height="{{ $f['size'][1] }}" @endif
                                     data-url="{{ route('requirements.image.store', [$project, $f['key']]) }}">
                                 <span data-image-label>{{ $f['image_url'] ? 'Cambiar foto' : 'Subir foto' }}</span>
                             </label>
@@ -102,3 +114,23 @@
         @endif
     </section>
 @endforeach
+
+@once
+    @push('head')
+        <link rel="stylesheet" href="{{ asset('vendor/cropperjs/cropper.min.css') }}">
+        <script src="{{ asset('vendor/cropperjs/cropper.min.js') }}" defer></script>
+    @endpush
+    <dialog class="crop" data-crop-dialog aria-labelledby="crop-title">
+        <h2 id="crop-title">Encuadrá la foto</h2>
+        <p class="muted" data-crop-help>Mové la foto y ajustá el tamaño: lo que queda dentro del recuadro es lo que se ve en el sitio.</p>
+        <div class="crop-area"><img alt="" data-crop-img></div>
+        <div class="act">
+            <button class="btn ghost" type="button" data-crop-zoom="0.1" aria-label="Acercar">+</button>
+            <button class="btn ghost" type="button" data-crop-zoom="-0.1" aria-label="Alejar">−</button>
+            <button class="btn ghost" type="button" data-crop-rotate aria-label="Girar">↻</button>
+            <span style="flex:1"></span>
+            <button class="btn ghost" type="button" data-crop-cancel>Cancelar</button>
+            <button class="btn" type="button" data-crop-save>Guardar foto</button>
+        </div>
+    </dialog>
+@endonce

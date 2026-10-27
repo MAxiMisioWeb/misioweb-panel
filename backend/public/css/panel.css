@@ -60,3 +60,6 @@ details summary{cursor:pointer}
 .img-box{margin:6px 0 0;max-width:320px}.img-box img{display:block;width:100%;height:auto;border-radius:8px;border:1px solid var(--line);background:var(--wait)}
 .btn.file{position:relative;overflow:hidden}.btn.file input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
 [hidden]{display:none!important}
+dialog.crop{width:min(720px,calc(100vw - 24px));max-height:calc(100vh - 24px);border:0;border-radius:12px;padding:16px;background:var(--card);color:var(--tx)}
+dialog.crop::backdrop{background:rgba(0,0,0,.6)}
+.crop-area{margin-top:10px;height:min(60vh,460px);background:#222;border-radius:8px;overflow:hidden}.crop-area img{display:block;max-width:100%}

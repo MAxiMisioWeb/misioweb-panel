@@ -28,7 +28,10 @@ class RequirementImageController extends Controller
     {
         Gate::authorize('update', $project);
         $request->validate(
-            ['image' => ['required', 'file', 'mimes:jpg,jpeg,png,webp', 'max:'.self::MAX_KB]],
+            [
+                'image' => ['required', 'file', 'mimes:jpg,jpeg,png,webp', 'max:'.self::MAX_KB],
+                'original' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:'.self::MAX_KB],
+            ],
             [
                 'image.mimes' => 'La foto tiene que ser JPG, PNG o WebP.',
                 'image.max' => 'La foto pesa más de 10 MB.',
@@ -37,7 +40,7 @@ class RequirementImageController extends Controller
             ],
         );
 
-        return $this->respond($request, $project, $key, fn () => $this->checklist->storeImage($project, $key, $request->file('image')), 'Foto guardada.');
+        return $this->respond($request, $project, $key, fn () => $this->checklist->storeImage($project, $key, $request->file('image'), $request->file('original')), 'Foto guardada.');
     }
 
     public function destroy(Request $request, Project $project, string $key): JsonResponse|RedirectResponse
@@ -47,11 +50,16 @@ class RequirementImageController extends Controller
         return $this->respond($request, $project, $key, fn () => $this->checklist->deleteImage($project, $key), 'Foto quitada.');
     }
 
-    public function show(Project $project, string $key): StreamedResponse
+    /** La foto recortada, o la original con ?original=1. */
+    public function show(Request $request, Project $project, string $key): StreamedResponse
     {
         Gate::authorize('update', $project);
         $path = ProjectRequirement::where(['project_id' => $project->id, 'template_key' => $key])->value('value');
-        abort_unless(Checklist::isStoredImage($path) && Storage::disk('local')->exists($path), 404);
+        abort_unless(Checklist::isStoredImage($path), 404);
+        if ($request->boolean('original')) {
+            $path = Checklist::originalPath($path);
+        }
+        abort_unless($path && Storage::disk('local')->exists($path), 404);
 
         return Storage::disk('local')->response($path, null, [
             'Cache-Control' => 'private, max-age=31536000', // la URL cambia (?v=) cuando se reemplaza
@@ -75,6 +83,9 @@ class RequirementImageController extends Controller
 
         $field = collect($this->checklist->groups($project))->flatMap(fn ($g) => $g['fields'])->firstWhere('key', $key);
 
-        return response()->json($this->checklist->summary($project) + ['image_url' => $field['image_url'] ?? null]);
+        return response()->json($this->checklist->summary($project) + [
+            'image_url' => $field['image_url'] ?? null,
+            'aspect_ok' => $field['aspect_ok'] ?? true,
+        ]);
     }
 }

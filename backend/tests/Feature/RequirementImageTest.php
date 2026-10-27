@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Client;
 use App\Models\Project;
 use App\Models\ProjectRequirement;
+use App\Models\RequirementTemplate;
 use App\Models\User;
 use App\Services\Checklist;
 use Database\Seeders\SankalpaDemoSeeder;
@@ -114,5 +115,46 @@ class RequirementImageTest extends TestCase
 
         $this->get('/mi-panel')->assertSee('Cambiar foto')->assertSee('/requisitos/s1f/imagen?v=', false);
         $this->assertTrue(Checklist::isStoredImage(ProjectRequirement::where('template_key', 's1f')->value('value')));
+    }
+
+    public function test_cropped_photo_keeps_original_and_checks_format(): void
+    {
+        $agency = User::factory()->create();
+        $agency->forceFill(['role' => User::ROLE_AGENCY])->save();
+
+        // Recortada a 7:5 desde el navegador, con el original.
+        $this->actingAs($this->client)->post($this->url('s1f'), [
+            'image' => UploadedFile::fake()->image('bloque.jpg', 1400, 1000),
+            'original' => UploadedFile::fake()->image('bloque-original.jpg', 3000, 2000),
+        ], ['Accept' => 'application/json'])->assertOk()->assertJsonPath('aspect_ok', true);
+
+        $path = ProjectRequirement::where('template_key', 's1f')->value('value');
+        $original = Checklist::originalPath($path);
+        $this->assertNotNull($original);
+        Storage::disk('local')->assertExists($original);
+        $this->get($this->url('s1f').'?original=1')->assertOk();
+
+        // La agencia ve el enlace al original; el cliente no.
+        $this->actingAs($agency)->get("/agencia/proyectos/{$this->project->id}")->assertSee('Ver la foto original, sin recortar');
+        $this->actingAs($this->client)->get('/mi-panel')->assertDontSee('Ver la foto original')->assertSee('Formato 7:5 (1400 × 1000 px)');
+
+        // Subida sin recortar (sin JavaScript): se guarda pero avisa del formato.
+        $this->post($this->url('s1m'), ['image' => UploadedFile::fake()->image('ancha.jpg', 1600, 900)], ['Accept' => 'application/json'])
+            ->assertOk()->assertJsonPath('aspect_ok', false);
+        $this->get('/mi-panel')->assertSee('Esta foto no tiene el formato 4:5.');
+
+        // Quitar borra la recortada y el original.
+        $this->delete($this->url('s1f'), [], ['Accept' => 'application/json'])->assertOk();
+        Storage::disk('local')->assertMissing($path);
+        Storage::disk('local')->assertMissing($original);
+    }
+
+    public function test_catalog_formats(): void
+    {
+        $aspects = RequirementTemplate::where('type', 'image')->pluck('aspect', 'key')->all();
+
+        $this->assertSame(['bnd' => '16:9', 'bnm' => '4:5', 's1f' => '7:5', 's1m' => '4:5', 'b1i' => '16:9'],
+            array_intersect_key($aspects, array_flip(['bnd', 'bnm', 's1f', 's1m', 'b1i'])));
+        $this->assertCount(10, $aspects);
     }
 }

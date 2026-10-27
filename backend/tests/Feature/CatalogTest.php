@@ -24,7 +24,7 @@ class CatalogTest extends TestCase
 
         $this->assertSame(7, Widget::count());
         $this->assertSame(9, RequirementGroup::count());
-        $this->assertSame(35, RequirementTemplate::count());
+        $this->assertSame(40, RequirementTemplate::count());
     }
 
     public function test_every_signal_maps_to_existing_requirements(): void

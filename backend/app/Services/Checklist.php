@@ -30,7 +30,7 @@ class Checklist
             $fields = $group->templates->map(function (RequirementTemplate $t) use ($project, $values) {
                 $req = $values->get($t->key);
 
-                return [
+                $field = [
                     'key' => $t->key,
                     'label' => $t->label,
                     'subgroup' => $t->subgroup,
@@ -39,10 +39,20 @@ class Checklist
                     'value' => $req?->value,
                     'done' => (bool) $req?->done,
                     'source' => $req?->source,
-                    'image_url' => $t->type === 'image' && self::isStoredImage($req?->value)
-                        ? route('requirements.image', [$project, $t->key]).'?v='.$req->updated_at?->timestamp
-                        : null,
+                    'aspect' => $t->aspect,
+                    'size' => RequirementTemplate::ASPECT_SIZES[$t->aspect] ?? null,
+                    'image_url' => null,
+                    'original_url' => null,
+                    'aspect_ok' => true,
                 ];
+                if ($t->type === 'image' && self::isStoredImage($req?->value)) {
+                    $url = route('requirements.image', [$project, $t->key]);
+                    $field['image_url'] = $url.'?v='.$req->updated_at?->timestamp;
+                    $field['original_url'] = self::originalPath($req->value) ? $url.'?original=1&v='.$req->updated_at?->timestamp : null;
+                    $field['aspect_ok'] = self::matchesAspect($req->value, $t->aspect);
+                }
+
+                return $field;
             })->all();
 
             $done = count(array_filter($fields, fn ($f) => $f['done']));
@@ -134,21 +144,65 @@ class Checklist
      * Guarda la imagen de un requisito de tipo image y borra la anterior. Lo que se sube a mano
      * queda como manual.
      */
-    public function storeImage(Project $project, string $key, UploadedFile $file): ProjectRequirement
+    public function storeImage(Project $project, string $key, UploadedFile $file, ?UploadedFile $original = null): ProjectRequirement
     {
         $this->imageTemplate($project, $key);
         $req = ProjectRequirement::firstOrNew(['project_id' => $project->id, 'template_key' => $key]);
         $old = $req->value;
 
-        $ext = strtolower($file->guessExtension() ?: $file->getClientOriginalExtension() ?: 'jpg');
-        $path = $file->storeAs(self::IMAGE_DIR.'/'.$project->id, $key.'-'.Str::random(10).'.'.$ext, 'local');
+        $dir = self::IMAGE_DIR.'/'.$project->id;
+        $base = $key.'-'.Str::random(10);
+        $path = $file->storeAs($dir, $base.'.'.self::extension($file), 'local');
+        if ($original) {
+            // La foto sin recortar, por si la agencia necesita otro encuadre.
+            $original->storeAs($dir, $base.'-original.'.self::extension($original), 'local');
+        }
 
         $req->fill(['value' => $path, 'done' => true, 'source' => ProjectRequirement::SOURCE_MANUAL])->save();
         if (self::isStoredImage($old) && $old !== $path) {
-            Storage::disk('local')->delete($old);
+            self::deleteFiles($old);
         }
 
         return $req;
+    }
+
+    /** Ruta de la foto original (sin recortar) de una imagen guardada, si existe. */
+    public static function originalPath(string $path): ?string
+    {
+        $prefix = preg_replace('/\.\w+$/', '', $path).'-original.';
+        foreach (Storage::disk('local')->files(dirname($path)) as $file) {
+            if (str_starts_with($file, $prefix)) {
+                return $file;
+            }
+        }
+
+        return null;
+    }
+
+    /** ¿La imagen tiene el formato pedido? Tolera 2 % de diferencia (redondeos del recorte). */
+    public static function matchesAspect(string $path, ?string $aspect): bool
+    {
+        if (! $aspect || ! Storage::disk('local')->exists($path)) {
+            return true;
+        }
+        $size = @getimagesize(Storage::disk('local')->path($path));
+        if (! $size || ! $size[1]) {
+            return true;
+        }
+        [$w, $h] = array_map('intval', explode(':', $aspect));
+
+        return abs(($size[0] / $size[1]) / ($w / $h) - 1) <= 0.02;
+    }
+
+    private static function extension(UploadedFile $file): string
+    {
+        return strtolower($file->guessExtension() ?: $file->getClientOriginalExtension() ?: 'jpg');
+    }
+
+    private static function deleteFiles(string $path): void
+    {
+        $original = self::originalPath($path);
+        Storage::disk('local')->delete(array_filter([$path, $original]));
     }
 
     public function deleteImage(Project $project, string $key): void
@@ -159,7 +213,7 @@ class Checklist
             return;
         }
         if (self::isStoredImage($req->value)) {
-            Storage::disk('local')->delete($req->value);
+            self::deleteFiles($req->value);
         }
         $req->fill(['value' => null, 'done' => false, 'source' => ProjectRequirement::SOURCE_MANUAL])->save();
     }

@@ -45,9 +45,9 @@ class ChecklistTest extends TestCase
 
         $this->assertSame(['sec', 'blog', 'ig', 'wc', 'cal', 'ev', 'mk'], array_column($groups, 'key'));
         $sec = $groups[0];
-        $this->assertSame([4, 9], [$sec['done'], $sec['total']]);
-        $this->assertContains('Bloque 1 · Foto', $sec['missing']);
-        $this->assertSame(['done' => 7, 'total' => 31, 'percent' => 23], Checklist::totals($groups));
+        $this->assertSame([4, 14], [$sec['done'], $sec['total']]);
+        $this->assertContains('Bloque 1 · Foto para computadora', $sec['missing']);
+        $this->assertSame(['done' => 7, 'total' => 36, 'percent' => 19], Checklist::totals($groups));
     }
 
     public function test_text_is_done_when_not_empty_and_check_when_marked(): void
@@ -84,7 +84,7 @@ class ChecklistTest extends TestCase
     {
         $msg = $this->checklist()->message('Sankalpa', $this->checklist()->groups($this->project));
 
-        $this->assertStringStartsWith("Hola! Para avanzar con la web de Sankalpa nos falta:\n\n*Secciones de la portada*\n- Bloque 1 · Foto\n", $msg);
+        $this->assertStringStartsWith("Hola! Para avanzar con la web de Sankalpa nos falta:\n\n*Secciones de la portada*\n- Banner principal · Foto para computadora\n- Banner principal · Foto para tablet y celular\n", $msg);
         $this->assertStringContainsString("*Marca y textos legales*\n- Logo y elementos de marca entregados\n", $msg);
         $this->assertStringNotContainsString('Bloque 1 · Título', $msg); // ya cargado
         $this->assertStringEndsWith("\nCon eso podemos seguir. Gracias!", $msg);
@@ -95,7 +95,7 @@ class ChecklistTest extends TestCase
         $this->actingAs($this->client)
             ->putJson("/proyectos/{$this->project->id}/requisitos", ['key' => 's2d', 'value' => 'Clases grupales'])
             ->assertOk()
-            ->assertJsonPath('totals', ['done' => 8, 'total' => 31, 'percent' => 26])
+            ->assertJsonPath('totals', ['done' => 8, 'total' => 36, 'percent' => 22])
             ->assertJsonPath('groups.0.key', 'sec')
             ->assertJsonPath('groups.0.done', 5)
             ->assertJsonPath('done', fn ($keys) => in_array('s2d', $keys, true));
@@ -126,9 +126,9 @@ class ChecklistTest extends TestCase
         $this->actingAs($this->client)->get('/mi-panel')
             ->assertOk()
             ->assertSee('Secciones de la portada')
-            ->assertSee('4 de 9')
+            ->assertSee('4 de 14')
             ->assertSee('Faltan')
-            ->assertSee('23%')
+            ->assertSee('19%')
             ->assertDontSee('Estado del trabajo (interno)')
             ->assertDontSee('WhatsApp con código de país'); // widget no elegido
     }
@@ -180,7 +180,7 @@ class ChecklistTest extends TestCase
             ->assertOk()
             ->assertSee('Vista del cliente.')
             ->assertSee('Secciones de la portada')
-            ->assertSee('4 de 9')
+            ->assertSee('4 de 14')
             ->assertDontSee('Estado del trabajo (interno)');
 
         $this->actingAs($this->client)->get("/agencia/proyectos/{$this->project->id}/vista-cliente")

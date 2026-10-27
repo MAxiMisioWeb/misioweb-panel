@@ -127,22 +127,90 @@
         box.querySelector('[data-image-delete]').hidden = !url;
     }
 
-    document.addEventListener('change', function (e) {
-        var input = e.target.closest('[data-image-input]');
-        if (!input || !input.files.length) return;
+    function uploadImage(input, file, original) {
         var box = input.closest('[data-image]');
         var status = box.querySelector('[data-image-status]');
         status.textContent = 'Subiendo…';
-        shrink(input.files[0]).then(function (file) {
+        return Promise.all([shrink(file), original ? shrink(original) : null]).then(function (files) {
             var fd = new FormData();
-            fd.append('image', file);
+            fd.append('image', files[0]);
+            if (files[1]) fd.append('original', files[1]);
             return imageRequest(input.dataset.url, 'POST', fd);
         }).then(function (data) {
             refresh(data); showImage(box, data.image_url); status.textContent = 'Foto guardada';
+            var warn = box.querySelector('[data-aspect-warning]');
+            if (warn && data.aspect_ok) warn.remove();
         }).catch(function (err) {
             status.textContent = err.message;
         }).then(function () { input.value = ''; });
+    }
+
+    // Recorte guiado: la foto se encuadra en el formato del campo (16:9, 7:5, 4:5) antes de subirla.
+    var crop = { dialog: null, cropper: null, input: null, file: null, url: null };
+
+    function closeCrop() {
+        if (crop.cropper) crop.cropper.destroy();
+        if (crop.url) URL.revokeObjectURL(crop.url);
+        if (crop.dialog && crop.dialog.open) crop.dialog.close();
+        if (crop.input) crop.input.value = '';
+        crop.cropper = crop.url = crop.file = null;
+    }
+
+    function openCrop(input, file) {
+        crop.dialog = document.querySelector('[data-crop-dialog]');
+        var parts = input.dataset.aspect.split(':');
+        var img = crop.dialog.querySelector('[data-crop-img]');
+        crop.input = input; crop.file = file; crop.url = URL.createObjectURL(file);
+        crop.dialog.querySelector('[data-crop-help]').textContent =
+            'Formato ' + input.dataset.aspect + '. Mové la foto y ajustá el tamaño: lo que queda dentro del recuadro es lo que se ve en el sitio.';
+        img.onload = function () {
+            crop.cropper = new Cropper(img, {
+                aspectRatio: +parts[0] / +parts[1], viewMode: 1, autoCropArea: 1, dragMode: 'move',
+                background: false, responsive: true, toggleDragModeOnDblclick: false
+            });
+        };
+        img.src = crop.url;
+        crop.dialog.showModal();
+    }
+
+    function saveCrop() {
+        var input = crop.input, original = crop.file;
+        // Tamaño final: el del formato (ej. 1920 × 1080), o menos si la región elegida tiene menos
+        // píxeles (no se agrandan fotos chicas). Se calcula acá porque maxWidth/maxHeight de
+        // Cropper.js achica de más.
+        var area = crop.cropper.getData(true);
+        var scale = Math.min(1, +input.dataset.width / area.width, +input.dataset.height / area.height);
+        var canvas = crop.cropper.getCroppedCanvas({
+            width: Math.round(area.width * scale), height: Math.round(area.height * scale),
+            fillColor: '#fff', imageSmoothingQuality: 'high'
+        });
+        canvas.toBlob(function (blob) {
+            var name = original.name.replace(/\.\w+$/, '') + '.jpg';
+            closeCrop();
+            uploadImage(input, new File([blob], name, { type: 'image/jpeg' }), original);
+        }, 'image/jpeg', 0.88);
+    }
+
+    document.addEventListener('change', function (e) {
+        var input = e.target.closest('[data-image-input]');
+        if (!input || !input.files.length) return;
+        if (input.dataset.aspect && window.Cropper && document.querySelector('[data-crop-dialog]')) {
+            openCrop(input, input.files[0]);
+        } else {
+            uploadImage(input, input.files[0], null);
+        }
     });
+
+    document.addEventListener('click', function (e) {
+        if (!crop.cropper) return;
+        if (e.target.closest('[data-crop-save]')) saveCrop();
+        else if (e.target.closest('[data-crop-cancel]')) closeCrop();
+        else if (e.target.closest('[data-crop-zoom]')) crop.cropper.zoom(+e.target.closest('[data-crop-zoom]').dataset.cropZoom);
+        else if (e.target.closest('[data-crop-rotate]')) crop.cropper.rotate(90);
+    });
+    document.addEventListener('cancel', function (e) {
+        if (e.target.matches && e.target.matches('[data-crop-dialog]')) closeCrop();
+    }, true);
 
     document.addEventListener('click', function (e) {
         var b = e.target.closest('[data-image-delete]');

@@ -133,11 +133,11 @@ class SignalMapperTest extends TestCase
         ]);
         $after = $project->progress();
 
-        // Base: portada (9) + marca (3); reels: 5.
-        $this->assertSame(17, $before['total']);
+        // Base: portada (14) + marca (3); reels: 5.
+        $this->assertSame(22, $before['total']);
         $this->assertSame(0, $before['done']);
         $this->assertSame(1, $after['done']);
-        $this->assertSame(6, $after['percent']);
+        $this->assertSame(5, $after['percent']);
     }
 
     public function test_reels_loop_signals_mark_the_instagram_section(): void
@@ -153,7 +153,7 @@ class SignalMapperTest extends TestCase
         ]);
 
         $this->assertSame(['igp', 'igu', 'igm', 'iga'], $changed);
-        $this->assertSame(['done' => 4, 'total' => 17, 'percent' => 24], $project->progress());
+        $this->assertSame(['done' => 4, 'total' => 22, 'percent' => 18], $project->progress());
         $this->assertNull($this->req($project, 'igh'));
     }
 }
