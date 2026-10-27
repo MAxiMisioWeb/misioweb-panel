@@ -3,6 +3,12 @@
 @section('title', 'Mi panel')
 @section('heading', $project?->client->name ?? 'Mi panel')
 @section('content')
+    @if ($preview ?? false)
+        <div class="banner" role="note">
+            <b>Vista del cliente.</b> Así ve {{ $project?->client->name ?? 'el cliente' }} su panel. Lo que cargues acá se guarda de verdad.
+            <a href="{{ route('agency.project', $project) }}">← Volver a la vista de agencia</a>
+        </div>
+    @endif
     @if (! $project)
         <section class="g"><p>Todavía no hay un proyecto activo en tu cuenta. Si creés que es un error, escribinos a contacto@misioweb.com.</p></section>
     @else

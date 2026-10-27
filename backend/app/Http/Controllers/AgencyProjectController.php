@@ -49,6 +49,14 @@ class AgencyProjectController extends Controller
         ]);
     }
 
+    /** "Ver como cliente": la pantalla del cliente de este proyecto, sin cambiar de cuenta. */
+    public function preview(Project $project, ClientController $client): View
+    {
+        Gate::authorize('manage', $project);
+
+        return $client->panel($project, preview: true);
+    }
+
     public function update(Request $request, Project $project): RedirectResponse
     {
         Gate::authorize('manage', $project);

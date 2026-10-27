@@ -3,7 +3,8 @@
 @section('title', $project->client->name)
 @section('heading', $project->client->name)
 @section('content')
-    <p class="muted" style="margin:0 0 12px"><a href="{{ route('agency.home') }}">← Agencia</a> · {{ $project->name }} · {{ $project->client->users->pluck('email')->join(', ') }}</p>
+    <p class="muted" style="margin:0 0 12px"><a href="{{ route('agency.home') }}">← Agencia</a> · {{ $project->name }} · {{ $project->client->users->pluck('email')->join(', ') }}
+        · <a href="{{ route('agency.project.preview', $project) }}">Ver como cliente →</a></p>
 
     <div class="sum">
         <div><small>Estado</small><b>{{ ['in_progress' => 'En curso', 'published' => 'Publicado'][$project->status] ?? $project->status }}</b>

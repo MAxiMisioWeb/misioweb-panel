@@ -60,6 +60,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/plugin/misioweb-progreso.zip', [AgencyProjectController::class, 'plugin'])->name('plugin');
         Route::get('/proyectos/{project}', [AgencyProjectController::class, 'show'])->name('project');
+        Route::get('/proyectos/{project}/vista-cliente', [AgencyProjectController::class, 'preview'])->name('project.preview');
         Route::put('/proyectos/{project}', [AgencyProjectController::class, 'update'])->name('project.update');
         Route::put('/proyectos/{project}/secciones/{group}', [AgencyProjectController::class, 'section'])->name('project.section');
         Route::post('/proyectos/{project}/publicar', [AgencyProjectController::class, 'publish'])->name('project.publish');

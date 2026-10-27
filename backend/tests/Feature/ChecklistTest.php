@@ -170,4 +170,20 @@ class ChecklistTest extends TestCase
         $this->actingAs($this->client)->put("/agencia/proyectos/{$this->project->id}", ['fx_rate' => '1'])->assertRedirect(route('client.home'));
         $this->assertSame('1530.0000', (string) $this->project->fresh()->fx_rate);
     }
+
+    public function test_agency_sees_the_client_view_of_a_project(): void
+    {
+        $this->actingAs($this->agency)->get("/agencia/proyectos/{$this->project->id}")->assertSee('Ver como cliente');
+
+        $this->actingAs($this->agency)->get("/agencia/proyectos/{$this->project->id}/vista-cliente")
+            ->assertOk()
+            ->assertSee('Vista del cliente.')
+            ->assertSee('Secciones de la portada')
+            ->assertSee('4 de 9')
+            ->assertDontSee('Estado del trabajo (interno)');
+
+        $this->actingAs($this->client)->get("/agencia/proyectos/{$this->project->id}/vista-cliente")
+            ->assertRedirect(route('client.home'));
+        $this->actingAs($this->client)->get('/mi-panel')->assertDontSee('Vista del cliente.');
+    }
 }
