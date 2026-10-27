@@ -46,7 +46,7 @@ class ChecklistTest extends TestCase
         $this->assertSame(['sec', 'blog', 'ig', 'wc', 'cal', 'ev', 'mk'], array_column($groups, 'key'));
         $sec = $groups[0];
         $this->assertSame([4, 9], [$sec['done'], $sec['total']]);
-        $this->assertContains('Bloque 1 · Foto (enlace o nombre del archivo)', $sec['missing']);
+        $this->assertContains('Bloque 1 · Foto', $sec['missing']);
         $this->assertSame(['done' => 7, 'total' => 31, 'percent' => 23], Checklist::totals($groups));
     }
 
@@ -54,10 +54,10 @@ class ChecklistTest extends TestCase
     {
         $c = $this->checklist();
 
-        $this->assertTrue($c->update($this->project, 's1f', '  foto1.jpg ')->done);
-        $this->assertSame('foto1.jpg', ProjectRequirement::where('template_key', 's1f')->value('value'));
-        $this->assertFalse($c->update($this->project, 's1f', '   ')->done);
-        $this->assertNull(ProjectRequirement::where('template_key', 's1f')->value('value'));
+        $this->assertTrue($c->update($this->project, 's2d', '  Clases grupales ')->done);
+        $this->assertSame('Clases grupales', ProjectRequirement::where('template_key', 's2d')->value('value'));
+        $this->assertFalse($c->update($this->project, 's2d', '   ')->done);
+        $this->assertNull(ProjectRequirement::where('template_key', 's2d')->value('value'));
 
         $this->assertTrue($c->update($this->project, 'mkl', true)->done);
         $this->assertTrue($c->update($this->project, 'mkl', '1')->done);
@@ -84,7 +84,7 @@ class ChecklistTest extends TestCase
     {
         $msg = $this->checklist()->message('Sankalpa', $this->checklist()->groups($this->project));
 
-        $this->assertStringStartsWith("Hola! Para avanzar con la web de Sankalpa nos falta:\n\n*Secciones de la portada*\n- Bloque 1 · Foto (enlace o nombre del archivo)\n", $msg);
+        $this->assertStringStartsWith("Hola! Para avanzar con la web de Sankalpa nos falta:\n\n*Secciones de la portada*\n- Bloque 1 · Foto\n", $msg);
         $this->assertStringContainsString("*Marca y textos legales*\n- Logo y elementos de marca entregados\n", $msg);
         $this->assertStringNotContainsString('Bloque 1 · Título', $msg); // ya cargado
         $this->assertStringEndsWith("\nCon eso podemos seguir. Gracias!", $msg);
@@ -93,12 +93,12 @@ class ChecklistTest extends TestCase
     public function test_client_saves_field_by_field_with_json(): void
     {
         $this->actingAs($this->client)
-            ->putJson("/proyectos/{$this->project->id}/requisitos", ['key' => 's1f', 'value' => 'foto1.jpg'])
+            ->putJson("/proyectos/{$this->project->id}/requisitos", ['key' => 's2d', 'value' => 'Clases grupales'])
             ->assertOk()
             ->assertJsonPath('totals', ['done' => 8, 'total' => 31, 'percent' => 26])
             ->assertJsonPath('groups.0.key', 'sec')
             ->assertJsonPath('groups.0.done', 5)
-            ->assertJsonPath('done', fn ($keys) => in_array('s1f', $keys, true));
+            ->assertJsonPath('done', fn ($keys) => in_array('s2d', $keys, true));
     }
 
     public function test_section_form_saves_everything_without_javascript(): void
@@ -117,7 +117,7 @@ class ChecklistTest extends TestCase
         $other = User::factory()->create();
         $other->forceFill(['role' => User::ROLE_CLIENT, 'client_id' => Client::create(['name' => 'Otro'])->id])->save();
 
-        $this->actingAs($other)->putJson("/proyectos/{$this->project->id}/requisitos", ['key' => 's1f', 'value' => 'x'])->assertForbidden();
+        $this->actingAs($other)->putJson("/proyectos/{$this->project->id}/requisitos", ['key' => 's2d', 'value' => 'x'])->assertForbidden();
         $this->actingAs($other)->get("/agencia/proyectos/{$this->project->id}")->assertRedirect(route('client.home'));
     }
 

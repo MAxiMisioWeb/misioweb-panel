@@ -40,6 +40,12 @@ apt-get install -y -q nginx postgresql composer unzip git \
 	"php$PHP_VERSION-fpm" "php$PHP_VERSION-cli" "php$PHP_VERSION-pgsql" "php$PHP_VERSION-mbstring" \
 	"php$PHP_VERSION-xml" "php$PHP_VERSION-curl" "php$PHP_VERSION-zip" "php$PHP_VERSION-intl" "php$PHP_VERSION-bcmath"
 
+# Fotos de los clientes: hasta 10 MB por archivo (Nginx acepta 20 MB por pedido).
+cat > "/etc/php/$PHP_VERSION/fpm/conf.d/99-misioweb.ini" <<'PHPINI'
+upload_max_filesize = 12M
+post_max_size = 16M
+PHPINI
+
 say "Base de datos PostgreSQL"
 systemctl enable --now postgresql
 ENV_FILE="$APP_DIR/.env"

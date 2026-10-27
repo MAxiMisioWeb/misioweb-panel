@@ -32,13 +32,13 @@ class CatalogSeeder extends Seeder
      */
     public const GROUPS = [
         'sec' => [null, 'Secciones de la portada', 'Tres bloques de actividades. Cada uno necesita título, descripción y foto.', [
-            ['s1t', 'Título', 'text', 'Bloque 1'], ['s1d', 'Descripción', 'area', 'Bloque 1'], ['s1f', 'Foto (enlace o nombre del archivo)', 'text', 'Bloque 1'],
-            ['s2t', 'Título', 'text', 'Bloque 2'], ['s2d', 'Descripción', 'area', 'Bloque 2'], ['s2f', 'Foto (enlace o nombre del archivo)', 'text', 'Bloque 2'],
-            ['s3t', 'Título', 'text', 'Bloque 3'], ['s3d', 'Descripción', 'area', 'Bloque 3'], ['s3f', 'Foto (enlace o nombre del archivo)', 'text', 'Bloque 3'],
+            ['s1t', 'Título', 'text', 'Bloque 1'], ['s1d', 'Descripción', 'area', 'Bloque 1'], ['s1f', 'Foto', 'image', 'Bloque 1'],
+            ['s2t', 'Título', 'text', 'Bloque 2'], ['s2d', 'Descripción', 'area', 'Bloque 2'], ['s2f', 'Foto', 'image', 'Bloque 2'],
+            ['s3t', 'Título', 'text', 'Bloque 3'], ['s3d', 'Descripción', 'area', 'Bloque 3'], ['s3f', 'Foto', 'image', 'Bloque 3'],
         ]],
         'blog' => ['blog', 'Blog', 'Mínimo 2 entradas completas para publicar con contenido real.', [
-            ['b1t', 'Título', 'text', 'Entrada 1'], ['b1x', 'Texto completo', 'area', 'Entrada 1'], ['b1i', 'Imagen de portada', 'text', 'Entrada 1'],
-            ['b2t', 'Título', 'text', 'Entrada 2'], ['b2x', 'Texto completo', 'area', 'Entrada 2'], ['b2i', 'Imagen de portada', 'text', 'Entrada 2'],
+            ['b1t', 'Título', 'text', 'Entrada 1'], ['b1x', 'Texto completo', 'area', 'Entrada 1'], ['b1i', 'Imagen de portada', 'image', 'Entrada 1'],
+            ['b2t', 'Título', 'text', 'Entrada 2'], ['b2x', 'Texto completo', 'area', 'Entrada 2'], ['b2i', 'Imagen de portada', 'image', 'Entrada 2'],
         ]],
         'ig' => ['reels', 'Instagram (ReelsLoop)', 'Muestra los reels filtrados por hashtag. Requiere vincular la cuenta con Meta.', [
             ['igu', 'Usuario de Instagram', 'text'],

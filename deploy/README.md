@@ -113,6 +113,10 @@ Cada comando muestra un enlace para elegir contraseña, que vence en 60 minutos.
 
 Después sincroniza solo cada hora y cada vez que se publica algo.
 
+## Fotos de los clientes
+
+Se guardan en `~/misioweb-panel/backend/storage/app/private/projects/`. No están en el repositorio: el backup diario de la VM en Proxmox es lo que las protege. `deploy.sh` sube el límite de PHP a 12 MB por archivo.
+
 ## Comandos útiles
 
 Los comandos de `artisan` corren como `www-data`, el mismo usuario que el servidor web:

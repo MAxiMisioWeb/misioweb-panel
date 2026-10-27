@@ -41,7 +41,28 @@
                     <h3>{{ $f['subgroup'] }}</h3>
                     @php $last = $f['subgroup']; @endphp
                 @endif
-                @if ($f['type'] === 'check')
+                @if ($f['type'] === 'image')
+                    <div class="fl" data-image="{{ $f['key'] }}">
+                        <span><i class="dot{{ $f['done'] ? ' ok' : '' }}" data-dot="{{ $f['key'] }}"></i>{{ $f['label'] }}</span>
+                        <div class="img-box" data-img-box @if (! $f['image_url']) hidden @endif>
+                            <img src="{{ $f['image_url'] }}" alt="{{ $f['label'] }}" loading="lazy" data-img>
+                        </div>
+                        @if ($f['value'] && ! $f['image_url'])
+                            <div class="hint">Antes se cargó como texto: {{ $f['value'] }}</div>
+                        @endif
+                        <div class="act">
+                            <label class="btn ghost file">
+                                <input type="file" name="image" accept="image/jpeg,image/png,image/webp" form="img-{{ $g['key'] }}-{{ $f['key'] }}" data-image-input="{{ $f['key'] }}"
+                                    data-url="{{ route('requirements.image.store', [$project, $f['key']]) }}">
+                                <span data-image-label>{{ $f['image_url'] ? 'Cambiar foto' : 'Subir foto' }}</span>
+                            </label>
+                            <button class="btn nojs" type="submit" form="img-{{ $g['key'] }}-{{ $f['key'] }}">Guardar foto</button>
+                            <button class="btn danger" type="submit" form="img-del-{{ $g['key'] }}-{{ $f['key'] }}" data-image-delete="{{ $f['key'] }}"
+                                data-url="{{ route('requirements.image.destroy', [$project, $f['key']]) }}" @if (! $f['image_url']) hidden @endif>Quitar</button>
+                            <span class="hint" data-image-status>JPG, PNG o WebP.</span>
+                        </div>
+                    </div>
+                @elseif ($f['type'] === 'check')
                     <input type="hidden" name="values[{{ $f['key'] }}]" value="0">
                     <label class="ck">
                         <input type="checkbox" name="values[{{ $f['key'] }}]" value="1" data-req="{{ $f['key'] }}" @checked($f['done'])>
@@ -68,6 +89,13 @@
                 <span class="hint" data-saved></span>
             </div>
         </form>
+
+        @foreach ($g['fields'] as $f)
+            @if ($f['type'] === 'image')
+                <form id="img-{{ $g['key'] }}-{{ $f['key'] }}" method="POST" action="{{ route('requirements.image.store', [$project, $f['key']]) }}" enctype="multipart/form-data" hidden>@csrf</form>
+                <form id="img-del-{{ $g['key'] }}-{{ $f['key'] }}" method="POST" action="{{ route('requirements.image.destroy', [$project, $f['key']]) }}" hidden>@csrf @method('DELETE')</form>
+            @endif
+        @endforeach
 
         @if ($agency)
             </details>

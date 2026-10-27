@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[WithoutTimestamps]
 class RequirementTemplate extends Model
 {
-    public const TYPES = ['text', 'area', 'check'];
+    public const TYPES = ['text', 'area', 'check', 'image'];
 
     public function requirementGroup(): BelongsTo
     {

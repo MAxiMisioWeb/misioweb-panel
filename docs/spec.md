@@ -8,7 +8,7 @@
 - `widgets`: id, key, name, description, price_usd_impl, price_usd_month, active
 - `project_widgets`: project_id, widget_id
 - `requirement_groups`: id, key, widget_key (nulo = base), name, description, sort. Secciones con nombre y descripción, como las muestra el prototipo.
-- `requirement_templates`: id, group (→ `requirement_groups.key`), key, subgroup, label, type (`text` | `area` | `check`), hint, sort. El widget sale de la sección.
+- `requirement_templates`: id, group (→ `requirement_groups.key`), key, subgroup, label, type (`text` | `area` | `check` | `image`), hint, sort. El widget sale de la sección.
 - `project_sections`: project_id, group, work_status (`todo` | `doing` | `done`). Estado interno de la agencia por sección; el cliente no lo ve.
 - `project_requirements`: id, project_id, template_key, value, done, source (`manual` | `plugin`), updated_at
 - `sites`: id, project_id, url, token_hash, last_sync_at
@@ -55,6 +55,7 @@ Implementado en `backend/app/Services/ProposalCalculator.php`, con tests en `bac
 - Implementado como web (sesión y CSRF), no como API:
   - `PUT /proyectos/{id}/requisitos`: cliente (solo su proyecto) o agencia. Acepta JSON `{key, value}` para guardar campo por campo, o el formulario `values[key]` de una sección.
   - Un texto cuenta como hecho si no está vacío; una casilla, si está marcada. Lo cargado a mano queda `source = manual`.
+  - Imágenes: `POST`, `GET` y `DELETE /proyectos/{id}/requisitos/{key}/imagen`, solo para campos `image`. Las pueden usar el cliente del proyecto y la agencia. Una imagen por campo; reemplazar borra la anterior. El valor guardado es la ruta en el disco local (`projects/{id}/...`).
   - `PUT /agencia/proyectos/{id}`: cotización y widgets (solo agencia).
   - `PUT /agencia/proyectos/{id}/secciones/{group}`: estado interno de la sección.
   - `POST /agencia/proyectos/{id}/publicar`: pasa a `published` y fija `published_at`, que define desde cuándo se cobra el abono.

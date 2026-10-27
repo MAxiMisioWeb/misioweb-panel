@@ -80,6 +80,84 @@
             send(w.form.action, { work_status: w.value }).catch(function (err) { alert(err.message); });
         }
     });
+    // ---------- Imágenes ----------
+
+    // Achica fotos pesadas (celulares) antes de subirlas: lado mayor 2400 px, JPEG 85%.
+    function shrink(file) {
+        if (file.size < 2.5 * 1024 * 1024 || !/^image\/(jpeg|png|webp)$/.test(file.type) || !window.createImageBitmap) {
+            return Promise.resolve(file);
+        }
+        return createImageBitmap(file).then(function (img) {
+            var scale = Math.min(1, 2400 / Math.max(img.width, img.height));
+            var canvas = document.createElement('canvas');
+            canvas.width = Math.round(img.width * scale);
+            canvas.height = Math.round(img.height * scale);
+            canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+            return new Promise(function (resolve) {
+                canvas.toBlob(function (blob) {
+                    resolve(blob && blob.size < file.size ? new File([blob], file.name.replace(/\.\w+$/, '') + '.jpg', { type: 'image/jpeg' }) : file);
+                }, 'image/jpeg', 0.85);
+            });
+        }).catch(function () { return file; });
+    }
+
+    function imageRequest(url, method, body) {
+        return fetch(url, {
+            method: method,
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': token },
+            body: body,
+            credentials: 'same-origin'
+        }).then(function (r) {
+            return r.json().catch(function () { return {}; }).then(function (data) {
+                if (!r.ok) {
+                    var msg = data.message || (r.status === 413 ? 'La foto es demasiado pesada.' : 'No se pudo guardar la foto.');
+                    if (data.errors && data.errors.image) msg = data.errors.image[0];
+                    throw new Error(msg);
+                }
+                return data;
+            });
+        });
+    }
+
+    function showImage(box, url) {
+        var wrap = box.querySelector('[data-img-box]');
+        wrap.hidden = !url;
+        if (url) wrap.querySelector('[data-img]').src = url;
+        box.querySelector('[data-image-label]').textContent = url ? 'Cambiar foto' : 'Subir foto';
+        box.querySelector('[data-image-delete]').hidden = !url;
+    }
+
+    document.addEventListener('change', function (e) {
+        var input = e.target.closest('[data-image-input]');
+        if (!input || !input.files.length) return;
+        var box = input.closest('[data-image]');
+        var status = box.querySelector('[data-image-status]');
+        status.textContent = 'Subiendo…';
+        shrink(input.files[0]).then(function (file) {
+            var fd = new FormData();
+            fd.append('image', file);
+            return imageRequest(input.dataset.url, 'POST', fd);
+        }).then(function (data) {
+            refresh(data); showImage(box, data.image_url); status.textContent = 'Foto guardada';
+        }).catch(function (err) {
+            status.textContent = err.message;
+        }).then(function () { input.value = ''; });
+    });
+
+    document.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-image-delete]');
+        if (!b) return;
+        e.preventDefault();
+        if (!confirm('¿Quitar esta foto?')) return;
+        var box = b.closest('[data-image]');
+        var status = box.querySelector('[data-image-status]');
+        var fd = new FormData();
+        fd.append('_method', 'DELETE');
+        imageRequest(b.dataset.url, 'POST', fd)
+            .then(function (data) { refresh(data); showImage(box, null); status.textContent = 'Foto quitada'; })
+            .catch(function (err) { status.textContent = err.message; });
+    });
+
     // Si quedó algo sin guardar, avisar antes de salir.
     window.addEventListener('beforeunload', function (e) {
         for (var k in timers) { if (timers[k]) { e.preventDefault(); return; } }

@@ -10,6 +10,7 @@ use App\Http\Controllers\Auth\VerificationController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ProjectRequestController;
 use App\Http\Controllers\RequirementController;
+use App\Http\Controllers\RequirementImageController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -52,6 +53,11 @@ Route::middleware('auth')->group(function () {
     Route::put('/proyectos/{project}/requisitos', [RequirementController::class, 'update'])
         ->middleware(['verified', 'role:client,agency'])
         ->name('requirements.update');
+    Route::middleware(['verified', 'role:client,agency'])->prefix('/proyectos/{project}/requisitos/{key}/imagen')->group(function () {
+        Route::get('/', [RequirementImageController::class, 'show'])->name('requirements.image');
+        Route::post('/', [RequirementImageController::class, 'store'])->name('requirements.image.store');
+        Route::delete('/', [RequirementImageController::class, 'destroy'])->name('requirements.image.destroy');
+    });
 
     Route::middleware(['verified', 'role:agency'])->prefix('agencia')->name('agency.')->group(function () {
         Route::get('/', [AgencyController::class, 'index'])->name('home');

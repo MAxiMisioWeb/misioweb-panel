@@ -50,12 +50,6 @@ class RequirementController extends Controller
             return back()->with('status', 'Cambios guardados.');
         }
 
-        $groups = $this->checklist->groups($project);
-
-        return response()->json([
-            'groups' => array_map(fn ($g) => ['key' => $g['key'], 'done' => $g['done'], 'total' => $g['total'], 'missing' => $g['missing']], $groups),
-            'totals' => Checklist::totals($groups),
-            'done' => collect($groups)->flatMap(fn ($g) => $g['fields'])->filter(fn ($f) => $f['done'])->pluck('key')->values(),
-        ]);
+        return response()->json($this->checklist->summary($project));
     }
 }

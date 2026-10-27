@@ -34,7 +34,8 @@ Un plugin de WordPress (`wp-plugin/misioweb-progreso`) muestra el avance dentro 
 - Las claves de Mercado Pago se cargan directo en WooCommerce, nunca en el panel.
 - Cada widget trae sus propios requisitos; los widgets no elegidos no piden nada.
 - Después de aprobado el pedido, solo la agencia cambia widgets y cotización. El cliente los ve, pero para cambiarlos tiene que escribir.
-- Las fotos se cargan por ahora como enlace o nombre de archivo, como en el prototipo. La subida de archivos queda pendiente.
+- Fotos: los campos de tipo `image` (foto de cada bloque de la portada e imagen de portada de cada entrada del blog) se suben desde el panel. Se guardan en `backend/storage/app/private/projects/{id}/`, fuera de `public/`, y solo las ven el cliente del proyecto y la agencia. JPG, PNG o WebP de hasta 10 MB; el navegador achica las fotos de más de 2,5 MB a 2400 px antes de subirlas.
+- Precios ocultos al prospecto y al cliente durante el período de desarrollo (`PANEL_SHOW_PRICES=false`). La agencia los ve siempre.
 
 ## Decisiones pendientes
 

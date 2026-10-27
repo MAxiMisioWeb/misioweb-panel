@@ -57,3 +57,6 @@ nav.top form{margin:0}
 .js .nojs{display:none}
 details summary{cursor:pointer}
 .g a{text-decoration:none}
+.img-box{margin:6px 0 0;max-width:320px}.img-box img{display:block;width:100%;height:auto;border-radius:8px;border:1px solid var(--line);background:var(--wait)}
+.btn.file{position:relative;overflow:hidden}.btn.file input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+[hidden]{display:none!important}
