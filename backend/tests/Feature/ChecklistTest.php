@@ -174,6 +174,7 @@ class ChecklistTest extends TestCase
     public function test_agency_sees_the_client_view_of_a_project(): void
     {
         $this->actingAs($this->agency)->get("/agencia/proyectos/{$this->project->id}")->assertSee('Ver como cliente');
+        $this->actingAs($this->agency)->get('/agencia')->assertSee(route('agency.project.preview', $this->project), false);
 
         $this->actingAs($this->agency)->get("/agencia/proyectos/{$this->project->id}/vista-cliente")
             ->assertOk()

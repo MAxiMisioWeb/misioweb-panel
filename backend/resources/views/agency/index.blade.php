@@ -44,6 +44,7 @@
             <div style="margin-top:12px">
                 <div class="gh"><a href="{{ route('agency.project', $project) }}">{{ $project->client->name }} · {{ $project->name }}</a><span class="chip {{ $progress['percent'] === 100 ? 'ok' : ($progress['percent'] > 0 ? 'part' : '') }}">{{ $progress['done'] }} de {{ $progress['total'] }}</span></div>
                 <div class="bar" style="margin-top:6px"><i style="width:{{ $progress['percent'] }}%"></i></div>
+                <p class="muted" style="margin:4px 0 0"><a href="{{ route('agency.project', $project) }}">Gestionar</a> · <a href="{{ route('agency.project.preview', $project) }}">Ver como cliente</a></p>
             </div>
         @empty
             <p>Todavía no hay proyectos activos.</p>
